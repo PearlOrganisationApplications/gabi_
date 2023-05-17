@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CLIENT_ID</key>
+	<string>293161527580-dset26u6713b8vh6bdisl1hagdafpgc1.apps.googleusercontent.com</string>
+	<key>REVERSED_CLIENT_ID</key>
+	<string>com.googleusercontent.apps.293161527580-dset26u6713b8vh6bdisl1hagdafpgc1</string>
+	<key>ANDROID_CLIENT_ID</key>
+	<string>293161527580-b1r0h5asu1kpi9trb64obgttkaoqbloa.apps.googleusercontent.com</string>
+	<key>API_KEY</key>
+	<string>AIzaSyC5eK5ffFbR4fMqs4gdPZZKypdOHRSBuvw</string>
+	<key>GCM_SENDER_ID</key>
+	<string>293161527580</string>
+	<key>PLIST_VERSION</key>
+	<string>1</string>
+	<key>BUNDLE_ID</key>
+	<string>com.pearlorganisation.gabi</string>
+	<key>PROJECT_ID</key>
+	<string>gabi-383304</string>
+	<key>STORAGE_BUCKET</key>
+	<string>gabi-383304.appspot.com</string>
+	<key>IS_ADS_ENABLED</key>
+	<false></false>
+	<key>IS_ANALYTICS_ENABLED</key>
+	<false></false>
+	<key>IS_APPINVITE_ENABLED</key>
+	<true></true>
+	<key>IS_GCM_ENABLED</key>
+	<true></true>
+	<key>IS_SIGNIN_ENABLED</key>
+	<true></true>
+	<key>GOOGLE_APP_ID</key>
+	<string>1:293161527580:ios:5270b389cfc70cd19032d9</string>
+</dict>
+</plist>
