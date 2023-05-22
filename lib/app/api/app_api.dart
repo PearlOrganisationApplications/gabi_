@@ -28,8 +28,8 @@ class API {
   static const String _sign_up_url = 'user/signup';
   static const String _login_url = 'user/signin';
   static const String _sigin_with_options_url = 'user/other-login';
-  static const String _forget_password_url = 'user/forgot-password';
-  static const String _verify_otp_url = 'user/forgot-password';
+  static const String _send_otp_url = 'user/forgot-password';
+  static const String _verify_otp_url = 'user/verify-otp';
   static const String _change_password_url = 'user/forgot-password';
   static const String _trendings = '/user/trendings';
   static const String _recentlyPlayed = '/user/songs';
@@ -188,7 +188,7 @@ class API {
 
   static Future<Response?> forgetPassword({required String email}) async {
     try {
-      Response response = await _dio.post(_forget_password_url, data: jsonEncode({'email': email}));
+      Response response = await _dio.post(_send_otp_url, data: jsonEncode({'email': email}));
       return response;
     } on DioError catch (e) {
       print(e.response?.statusCode);
@@ -220,9 +220,9 @@ class API {
       return e.response;
     }
   }
-  static Future<Response?> changePassword({required String newPassword}) async {
+  static Future<Response?> changePassword({required oldPassword, required String newPassword}) async {
     try {
-      Response response = await _dio.post(_verify_otp_url, data: jsonEncode({'new_password': newPassword}));
+      Response response = await _dio.post(_change_password_url, data: jsonEncode({'old_password' : oldPassword, 'new_password': newPassword}));
       return response;
     } on DioError catch (e) {
       print(e.response?.statusCode);

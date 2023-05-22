@@ -58,6 +58,8 @@ class _AudienceState extends State<Audience> {
   Future<void> initAgora() async {
     // retrieve permissions
     //create the engine
+    await [Permission.microphone, Permission.camera].request();
+
     _engine = createAgoraRtcEngine();
     _eventHandler =  RtcEngineEventHandler(
       onJoinChannelSuccess: (RtcConnection connection, int elapsed) {

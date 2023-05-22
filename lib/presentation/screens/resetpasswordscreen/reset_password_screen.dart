@@ -39,6 +39,8 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
 
   TextEditingController _passwordController = TextEditingController();
   TextEditingController _cpasswordController = TextEditingController();
+  TextEditingController _oldPasswordController = TextEditingController();
+
 
 
   @override
@@ -85,6 +87,77 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
+              Padding(
+                padding: const EdgeInsets.only(
+                  top: 20.0,
+                  left: 15.0,
+                  right: 15.0,
+                ),
+                child: TextFormField(
+                  maxLines: 1,
+                  onTapOutside: (event) {
+                    FocusScopeNode currentFocus = FocusScope.of(context);
+
+                    if (!currentFocus.hasPrimaryFocus) {
+                      currentFocus.unfocus();
+                    }
+                  },
+                  controller: _oldPasswordController,
+                  //onChanged: widget.onValueChanged(passController.text),
+                  obscureText: _obscuredPassword,
+                  style: TextStyle(color: AppColors.textColor),
+                  cursorColor: AppColors.cursorColor,
+                  keyboardType: TextInputType.visiblePassword,
+                  inputFormatters: [NoSpaceFormatter()],
+                  textInputAction: TextInputAction.done,
+                  decoration: InputDecoration(
+                    prefixIconColor: Colors.orange,
+                    suffixIconColor: _obscuredPassword ? Colors.grey : Colors.red,
+                    contentPadding: EdgeInsets.symmetric(horizontal: 10),
+                    enabledBorder: OutlineInputBorder(
+                      borderSide:
+                      const BorderSide(width: 2, color: AppColors.textFormFieldEnabledBorderColor),
+                      borderRadius: BorderRadius.circular(15),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderSide:
+                      const BorderSide(width: 2, color: AppColors.textFormFieldFocusedBorderColor),
+                      borderRadius: BorderRadius.circular(15),
+                    ),
+                    errorBorder: OutlineInputBorder(
+                      borderSide: const BorderSide(
+                          width: 2, color: Colors.red),
+                      borderRadius: BorderRadius.circular(15),
+                    ),
+                    focusedErrorBorder: OutlineInputBorder(
+                      borderSide: const BorderSide(
+                          width: 2, color: Colors.redAccent),
+                      borderRadius: BorderRadius.circular(15),
+                    ),
+                    prefixIcon: Icon(Icons.lock_rounded, size: 24),
+                    suffixIcon: Padding(
+                      padding: const EdgeInsets.fromLTRB(0, 0, 4, 0),
+                      child: GestureDetector(
+                        onTap: () => _toggleObscured(0),
+                        child: Icon(
+                          _obscuredPassword
+                              ? Icons.visibility_off_rounded
+                              : Icons.visibility_rounded,
+                          size: 24,
+                        ),
+                      ),
+                    ),
+                    label: const Text('Old Password', style: TextStyle(color: AppColors.textLabelColor),),
+                    hintText: 'passWord@1',
+                    labelStyle: const TextStyle(color: AppColors.textHintColor),
+                    hintStyle: const TextStyle(
+                      color: Colors.black26,
+                    ),
+                  ),
+                  validator: (val) =>
+                  val!.isEmpty ? 'Enter your old/current password' : null,
+                ),
+              ),
               Padding(
                 padding: const EdgeInsets.only(
                   top: 20.0,
@@ -291,7 +364,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                   onPressed: () async {
                     if (_formKey.currentState!.validate()) {
                       EasyLoading.show();
-                      final Response? response = await API.changePassword(newPassword: _passwordController.text);
+                      final Response? response = await API.changePassword(oldPassword: _oldPasswordController.text, newPassword: _passwordController.text);
                       EasyLoading.dismiss();
                       if(response!.statusMessage == 'successful'){
                         EasyLoading.showError('Password changed successfully.', duration: Duration(seconds: 3));

@@ -22,7 +22,20 @@ import '../../../riverpod/connectivity_status_notifier.dart';
 import '../../../utils/downloader/downloader.dart';
 import '../../../utils/systemuioverlay/full_screen.dart';
 
-class Homepage extends ConsumerWidget {
+
+class HomePage extends StatefulWidget {
+  const HomePage({Key? key}) : super(key: key);
+
+  @override
+  State<HomePage> createState() => _HomePageState();
+}
+
+
+class _HomePageState extends State<HomePage> {
+
+
+
+
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   DateTime? backButtonPressTime;
   final List<String> imagesList = [
@@ -33,8 +46,10 @@ class Homepage extends ConsumerWidget {
   ];
   List<Map<String, dynamic>> trendingList = [];
   List<Map<String, dynamic>> recentsList = [];
+  List<Map<String, dynamic>> allSongsList = [];
+  SongModel? currentSong;
+  bool? _isMiniPlayerVisible;
 
-  Homepage({super.key});
 
 
   Future<bool> handleWillPop(BuildContext context) async {
@@ -65,6 +80,10 @@ class Homepage extends ConsumerWidget {
     final response = await API.recentlyPlayed();
     return response;
   });
+  final all_songs_Provider = FutureProvider((ref) async {
+    final response = await API.recentlyPlayed();
+    return response;
+  });
   final indicatorPositionProvider = StateProvider<int>((ref) => 0);
 
 
@@ -84,16 +103,10 @@ class Homepage extends ConsumerWidget {
 
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     //checkImageExists();
     FullScreen.setColor(navigationBarColor: Colors.white, statusBarColor: Colors.black);
     YYDialog.init(context);
-    final indicatorPosition = ref.watch(indicatorPositionProvider);
-
-    var connectivityStatusProvider = ref.watch(connectivityStatusProviders);
-    var trendingDataProvider = ref.watch(trendingProvider);
-    var recentlyPlayedDataProvider = ref.watch(recently_played_Provider);
-
 
     return WillPopScope(
       onWillPop: () => handleWillPop(context),
@@ -120,148 +133,270 @@ class Homepage extends ConsumerWidget {
         ),
         drawer: const MyDradwer(),
         body: SafeArea(
-          child: NotificationListener<OverscrollIndicatorNotification>(
-            onNotification: (OverscrollIndicatorNotification overscroll) {
-              overscroll.disallowIndicator();
-              return true;
-            },
-            child: SingleChildScrollView(
-              child: Column(
-                children: [
-                  const SizedBox(height: 16.0,),
-                  CarouselSlider(
-                    items: imagesList.map((item) => Container(
-                      child: Center(
-                        child: Image.asset(item, fit: BoxFit.cover),
+          child: Stack(
+            children: [
+              NotificationListener<OverscrollIndicatorNotification>(
+                onNotification: (OverscrollIndicatorNotification overscroll) {
+                  overscroll.disallowIndicator();
+                  return true;
+                },
+                child: SingleChildScrollView(
+                  child: Column(
+                    children: [
+                      const SizedBox(height: 16.0,),
+                      Consumer(
+                        builder: (context, ref, child) {
+                          final indicatorPosition = ref.watch(indicatorPositionProvider);
+
+                          return Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              CarouselSlider(
+                                items: imagesList.map((item) => Container(
+                                  child: Center(
+                                    child: Image.asset(item, fit: BoxFit.cover),
+                                  ),
+                                )).toList(),
+
+
+                                //Slider Container properties
+                                options: CarouselOptions(
+                                  height: 300.0,
+                                  enlargeCenterPage: true,
+                                  autoPlay: true,
+                                  aspectRatio: 16 / 9,
+                                  autoPlayCurve: Curves.fastOutSlowIn,
+                                  onPageChanged: (index, reason) {
+                                    ref.read(indicatorPositionProvider.notifier).state = index;
+
+                                  },
+                                  enableInfiniteScroll: true,
+                                  autoPlayAnimationDuration:
+                                  const Duration(milliseconds: 800),
+                                  viewportFraction: .9,
+                                ),
+                              ),
+                              Center(
+                                child: CarouselIndicator(
+                                  activeColor: Colors.green,
+                                  color: Colors.black,
+                                  count: imagesList.length,
+                                  index: indicatorPosition,
+                                ),
+                              ),
+                            ],
+                          );
+                        },
                       ),
-                    )).toList(),
-
-
-                    //Slider Container properties
-                    options: CarouselOptions(
-                      height: 300.0,
-                      enlargeCenterPage: true,
-                      autoPlay: true,
-                      aspectRatio: 16 / 9,
-                      autoPlayCurve: Curves.fastOutSlowIn,
-                      onPageChanged: (index, reason) {
-                        ref.read(indicatorPositionProvider.notifier).state = index;
-
-                      },
-                      enableInfiniteScroll: true,
-                      autoPlayAnimationDuration:
-                      const Duration(milliseconds: 800),
-                      viewportFraction: .9,
-                    ),
-                  ),
-                  Center(
-                    child: CarouselIndicator(
-                      activeColor: Colors.green,
-                      color: Colors.black,
-                      count: imagesList.length,
-                      index: indicatorPosition,
-                    ),
-                  ),
-                  const SizedBox(height: 32.0,),
-                  const SizedBox(
-                    height: 20.0,
-                  ),
-                  Card(
-                    margin: EdgeInsets.all(0.0),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.only(left: 16.0, top: 16.0, bottom: 8.0),
-                          child: Row(
-                            children: const [
-                              Text(
-                                "Recently Played",
-                                style: TextStyle(
-                                  //color: Colors.amber,
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.w500),
+                      const SizedBox(height: 32.0,),
+                      const SizedBox(
+                        height: 20.0,
+                      ),
+                      Card(
+                        margin: EdgeInsets.all(0.0),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.only(left: 16.0, top: 16.0, bottom: 8.0),
+                              child: Row(
+                                children: const [
+                                  Text(
+                                    "Recently Played",
+                                    style: TextStyle(
+                                      //color: Colors.amber,
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.w500),
+                                  ),
+                                ],
                               ),
-                            ],
-                          ),
+                            ),
+                            Consumer(
+                                builder: (context, ref, child) {
+                                  var recentlyPlayedDataProvider = ref.watch(recently_played_Provider);
+                                  var connectivityStatusProvider = ref.watch(connectivityStatusProviders);
+
+                                  return Container(
+                                    alignment: Alignment.center,
+                                    width: MediaQuery.of(context).size.width,
+                                    height: 200,
+                                    child: connectivityStatusProvider == ConnectivityStatus.isConnected?
+                                    recentlyPlayedDataProvider.when(data: (response) {
+
+                                      if(response != null){
+                                        recentsList.clear();
+                                        for (var item in response.data) {
+                                          recentsList.add(item);
+                                        }
+                                      }
+                                      return recentsList.isNotEmpty? showRecentsList() : Center(child: Text('No Internet Connection!'),);
+
+                                    }, error: (error, stackTrace) => Text('Error Fetching Data. ${error
+                                    }'), loading: (){
+                                      return Center(child: CircularProgressIndicator(color: Colors.green,));
+                                    }): recentsList.isNotEmpty? showRecentsList() : Center(child: Text('No Internet Connection!'),),
+                                  );
+                                },
+                            ),
+                          ],
                         ),
-                        Container(
-                          alignment: Alignment.center,
-                          width: MediaQuery.of(context).size.width,
-                          height: 200,
-                          child: connectivityStatusProvider == ConnectivityStatus.isConnected?
-                recentlyPlayedDataProvider.when(data: (response) {
+                      ),
 
-                            if(response != null){
-                              recentsList.clear();
-                              for (var item in response.data) {
-                                recentsList.add(item);
-                              }
-                            }
-                            return recentsList.isNotEmpty? showRecentsList() : Center(child: Text('No Internet Connection!'),);
-
-                          }, error: (error, stackTrace) => Text('Error Fetching Data. ${error
-                          }'), loading: (){
-                            return Center(child: CircularProgressIndicator(color: Colors.black,));
-                          }): recentsList.isNotEmpty? showRecentsList() : Center(child: Text('No Internet Connection!'),),
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  const SizedBox(
-                    height: 20.0,
-                  ),
-                  Card(
-                    margin: EdgeInsets.all(0.0),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.only(left: 16.0, top: 16.0, bottom: 8.0),
-                          child: Row(
-                            children: const [
-                              Text(
-                                "Trending Now",
-                                style: TextStyle(
-                                  //color: Colors.amber,
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.w500),
+                      const SizedBox(
+                        height: 20.0,
+                      ),
+                      Card(
+                        margin: EdgeInsets.all(0.0),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.only(left: 16.0, top: 16.0, bottom: 8.0),
+                              child: Row(
+                                children: const [
+                                  Text(
+                                    "Trending Now",
+                                    style: TextStyle(
+                                      //color: Colors.amber,
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.w500),
+                                  ),
+                                ],
                               ),
-                            ],
-                          ),
+                            ),
+
+                            Consumer(
+                                builder: (context, ref, child) {
+                                  var trendingDataProvider = ref.watch(trendingProvider);
+
+                                  return Container(
+                                    //color: Colors.red,
+                                    alignment: Alignment.center,
+                                    width: double.infinity,
+                                    height: 200,
+                                    child: trendingDataProvider.when(
+                                        data: (response) {
+                                          if(response != null){
+                                            for (var item in response!.data) {
+                                              trendingList.add(item);
+                                              print(item);
+                                            }
+                                          }
+                                          return trendingList.isNotEmpty? showTrendingList() : Center(child: Text('No Internet Connection!'),);
+
+                                        },
+                                        error: (error, stackTrace) => Text('Error Fetching Data.'),
+                                        loading: (){
+                                          return Center(child: CircularProgressIndicator(color: Colors.red,));
+                                        }
+                                    ),
+                                  );
+                                },),
+                          ],
                         ),
+                      ),
 
+                      const SizedBox(
+                        height: 20.0,
+                      ),
+                      Card(
+                        margin: EdgeInsets.all(0.0),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.only(left: 16.0, top: 16.0, bottom: 8.0),
+                              child: Row(
+                                children: const [
+                                  Text(
+                                    "All Songs",
+                                    style: TextStyle(
+                                      //color: Colors.amber,
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.w500),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            Consumer(
+                              builder: (context, ref, child) {
+                                var allSongsDataProvider = ref.watch(all_songs_Provider);
+                                var connectivityStatusProvider = ref.watch(connectivityStatusProviders);
 
-                        Container(
-                          //color: Colors.red,
-                          alignment: Alignment.center,
-                          width: double.infinity,
-                          height: 200,
-                          child: trendingDataProvider.when(
-                              data: (response) {
-                                if(response != null){
-                                  for (var item in response!.data) {
-                                    trendingList.add(item);
-                                    print(item);
-                                  }
-                                }
-                                return trendingList.isNotEmpty? showTrendingList() : Center(child: Text('No Internet Connection!'),);
+                                return Container(
+                                  alignment: Alignment.center,
+                                  width: MediaQuery.of(context).size.width,
+                                  height: 200,
+                                  child: connectivityStatusProvider == ConnectivityStatus.isConnected?
+                                  allSongsDataProvider.when(data: (response) {
 
+                                    if(response != null){
+                                      allSongsList.clear();
+                                      for (var item in response.data) {
+                                        allSongsList.add(item);
+                                      }
+                                    }
+                                    return allSongsList.isNotEmpty? showAllSongsList() : Center(child: Text('No Internet Connection!'),);
+
+                                  }, error: (error, stackTrace) => Text('Error Fetching Data. ${error
+                                  }'), loading: (){
+                                    return Center(child: CircularProgressIndicator(color: Colors.blue,));
+                                  }): allSongsList.isNotEmpty? showAllSongsList() : Center(child: Text('No Internet Connection!'),),
+                                );
                               },
-                              error: (error, stackTrace) => Text('Error Fetching Data.'),
-                              loading: (){
-                                return Center(child: CircularProgressIndicator(color: Colors.black,));
-                              }
-                          ),
+                            ),
+                          ],
                         ),
-                      ],
-                    ),
+                      ),
+                      const SizedBox(
+                        height: 20.0,
+                      ),
+                    ],
                   ),
-
-                ],
+                ),
               ),
-            ),
+              if(currentSong != null && _isMiniPlayerVisible != null && _isMiniPlayerVisible == true) Align(
+                alignment: Alignment.bottomLeft,
+                child: Container(
+                  width: MediaQuery.of(context).size.width,
+                  height: 60.0,
+                  color: Colors.white.withOpacity(0.99),
+                  child: Row(
+                    children: [
+                      Container(
+                        margin: EdgeInsets.only(left: 5.0),
+                        height: 40.0,
+                        width: 40.0,
+                        decoration: BoxDecoration(
+                          image: DecorationImage(image: AssetImage('assets/icons/music.png')),
+                        ),
+                      ),
+                      Expanded(
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 4.0),
+                            height: 40.0,
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(currentSong?.title?? 'This is the Song title', style: TextStyle(fontSize: 20.0, fontWeight: FontWeight.w700), overflow: TextOverflow.ellipsis,),
+                                Text(currentSong?.publishedBy?? 'Singer Name'),
+                              ],
+                            ),
+                          )
+                      ),
+                      IconButton(onPressed: () {}, icon: Icon(Icons.play_arrow)),
+                      IconButton(onPressed: () {
+                        setState(() {
+                          currentSong = null;
+                          _isMiniPlayerVisible = false;
+                        });
+                      }, icon: Icon(Icons.close)),
+                    ],
+                  ),
+                ),
+              )
+            ],
           ),
         ),
       ),
@@ -280,10 +415,10 @@ class Homepage extends ConsumerWidget {
             imageUrl: trendingList[index]['img'],
             songUrl: trendingList[index]['url']??'',
             songDuration: trendingList[index]['duration'] ?? '0:00',
+            publishedBy: trendingList[index]['published_by'],
           );
         });
   }
-
   Widget showRecentsList() {
     return ListView.builder(
         shrinkWrap: true,
@@ -296,10 +431,28 @@ class Homepage extends ConsumerWidget {
             imageUrl: recentsList[index]['img'],
             songUrl: recentsList[index]['url'] ?? '',
             songDuration: recentsList[index]['duration'] ?? '0:00',
+            publishedBy: recentsList[index]['published_by'],
           );
         });
   }
-  Widget _songsCardWidget({required BuildContext context, required String title,required String imageUrl,required String songUrl,required String songDuration}) {
+  Widget showAllSongsList() {
+    return ListView.builder(
+        shrinkWrap: true,
+        scrollDirection: Axis.horizontal,
+        itemCount: allSongsList.length,
+        itemBuilder: (context, index) {
+          return _songsCardWidget(
+            context: context,
+            title: allSongsList[index]['title'],
+            imageUrl: allSongsList[index]['img'],
+            songUrl: allSongsList[index]['url'] ?? '',
+            songDuration: allSongsList[index]['duration'] ?? '0:00',
+            publishedBy: allSongsList[index]['published_by'],
+          );
+        });
+  }
+
+  Widget _songsCardWidget({required BuildContext context, required String title,required String imageUrl,required String songUrl,required String songDuration, required publishedBy}) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 16.0),
       child: Card(
@@ -309,12 +462,15 @@ class Homepage extends ConsumerWidget {
         ),
         child: InkWell(
           onTap: () {
-            showDialog(
+            setState(() {
+              currentSong = SongModel(title, imageUrl, songUrl, songDuration, publishedBy);
+            });
+            showBottomSheet();
+            /*showDialog(
               barrierDismissible: false,
               context: context,
               builder: (context) =>
-                  MusicPlayerDialog(
-                    songUrl: songUrl, title: title, imageUrl: imageUrl),);
+                  MusicPlayerDialog(songUrl: songUrl, title: title, imageUrl: imageUrl),);*/
           },
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -395,6 +551,52 @@ class Homepage extends ConsumerWidget {
       ),
     );
   }
+
+
+  void showBottomSheet() {
+    showModalBottomSheet(
+      context: context,
+      useSafeArea: true,
+      isDismissible: false,
+      builder: (context) {
+
+        return MusicPlayerDialog(
+            songUrl: currentSong!.songUrl,
+            title: currentSong!.title,
+            imageUrl: currentSong!.imageUrl,
+            onKeyDown: (value) {
+              if(value == true){
+                setState(() {
+                  _isMiniPlayerVisible = true;
+                });
+              }
+            },
+        );
+      },
+    );
+  }
+}
+
+
+class SongModel {
+  String _title;
+  String _imageUrl;
+  String _songUrl;
+  String _songDuration;
+  String _publishedBy;
+
+  SongModel(this._title, this._imageUrl, this._songUrl, this._songDuration,
+      this._publishedBy);
+
+  String get publishedBy => _publishedBy;
+
+  String get songDuration => _songDuration;
+
+  String get songUrl => _songUrl;
+
+  String get imageUrl => _imageUrl;
+
+  String get title => _title;
 }
 
 

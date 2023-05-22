@@ -307,7 +307,7 @@ class _VerifyOtpScreenState extends State<VerifyOtpScreen> {
     Navigator.pushAndRemoveUntil(
         context, MaterialPageRoute(
         builder: (context) =>
-            Homepage()), (
+            HomePage()), (
         Route<dynamic> route) => false);
   }
   void snackBar(String m, Color color){

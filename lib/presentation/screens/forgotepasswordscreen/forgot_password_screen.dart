@@ -142,7 +142,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                             EasyLoading.show();
                             final Response? response = await API.forgetPassword(email: _emailController.text);
                             EasyLoading.dismiss();
-                            if(response!.statusMessage == 'successful'){
+                            if(response!.data['message'] == 'mail sent'){
                               EasyLoading.showError('OTP Sent to your email.', duration: Duration(seconds: 3));
                               setState(() {
                                 _verifyVisible = true;

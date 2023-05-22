@@ -75,7 +75,7 @@ class _SplashWidgetState extends State<SplashWidget> {
     if(AppPreferences.getOnBoardShow()!){
       Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => OnBoardingScreen()));
     }else if(AppPreferences.getIsUserLogin()!){
-      Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => Homepage()));
+      Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => HomePage()));
     }else {
       Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => LoginPage()));
     }

@@ -1,4 +1,3 @@
-import 'dart:isolate';
 import 'dart:ui';
 
 import 'package:flutter/cupertino.dart';
@@ -79,12 +78,11 @@ class _DownloadPageState extends State<DownloadScreen> {
         ],
       ),
       body: Container(
-        child:
-        StreamBuilder<List<DownloadTask>?>(
-          stream: FlutterDownloader.loadTasks().asStream(),
+        child: FutureBuilder<List<DownloadTask>?>(
+          future: FlutterDownloader.loadTasks(),
           builder: (context, snapshot) {
             if(!snapshot.hasData){
-              return Center(child: Text('Loading'));
+              return const Center(child: CircularProgressIndicator());
             }else if(snapshot.data!.length == 0){
               return Center(child: Text('No Downloads yet'));
             }else{
@@ -205,6 +203,9 @@ class _DownloadPageState extends State<DownloadScreen> {
         FlutterDownloader.retry(taskId: taskid).then((newTaskID) {
           changeTaskID(taskid, newTaskID!);
         });
+        setState(() {
+
+        });
       },
     )
         : _status == DownloadTaskStatus.paused
@@ -250,7 +251,7 @@ class _DownloadPageState extends State<DownloadScreen> {
         )
       ],
     )
-        : _status == DownloadTaskStatus.complete
+        /*: _status == DownloadTaskStatus.complete
         ? GestureDetector(
       child:
       Icon(Icons.delete, size: 20, color: Colors.red),
@@ -260,7 +261,7 @@ class _DownloadPageState extends State<DownloadScreen> {
             taskId: taskid, shouldDeleteContent: true);
         setState(() {});
       },
-    )
+    )*/
         : Container();
   }
 

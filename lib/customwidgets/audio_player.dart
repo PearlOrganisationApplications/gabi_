@@ -1,5 +1,6 @@
 import 'package:audio_video_progress_bar/audio_video_progress_bar.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:marquee/marquee.dart';
 
@@ -7,8 +8,9 @@ class MusicPlayerDialog extends StatefulWidget {
   final String songUrl;
   final String title;
   final String imageUrl;
+  final onKeyDown;
 
-  const MusicPlayerDialog({Key? key, required this.songUrl, required this.title, required this.imageUrl}) : super(key: key);
+  const MusicPlayerDialog({Key? key, required this.songUrl, required this.title, required this.imageUrl, required Function(bool value) this.onKeyDown}) : super(key: key);
 
   @override
   _MusicPlayerDialogState createState() => _MusicPlayerDialogState();
@@ -142,82 +144,119 @@ class _MusicPlayerDialogState extends State<MusicPlayerDialog> {
 
   @override
   Widget build(BuildContext context) {
-    return AlertDialog(
-      content: _isLoading ? Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Center(
+    return _isLoading ?
+    Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 30.0),
+          child: Center(
             child: CircularProgressIndicator(),
-          )
-        ],
-      ) : Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
+          ),
+        )
+      ],
+    ) :
+    Container(
+      padding: EdgeInsets.only(top: MediaQuery.of(context).padding.top, left: 20.0, right: 20.0),
+      height: MediaQuery.of(context).size.height,
+      child: WillPopScope(
+        onWillPop: () async {
+          widget.onKeyDown(true);
+          Navigator.pop(context);
+          return true;
+        },
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
 
-
-          Container(
-            height: 40.0,
-            width: 40.0,
-            child: StreamBuilder(
-                stream: _isBuffering(),
-                builder: (context, snapshot) => snapshot.data ?? true ? Card(
-                  elevation: 20.0,
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(40.0)
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Container(
+                  margin: EdgeInsets.only(left: 8.0),
+                  width: 40.0,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Colors.black
                   ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: CircularProgressIndicator(color: Colors.black,),
-                  ),
-                ) : Container()
-            ),
-          ),
-          AspectRatio(
-              aspectRatio: 1,
-            child: Container(
-              decoration: BoxDecoration(
-                image: DecorationImage(image: NetworkImage(widget.imageUrl)),
-                color: Colors.grey,
-                borderRadius: BorderRadius.all(Radius.circular(16.0)),
-              ),
-            ),
-          ),
-          Container(
-            alignment: Alignment.center,
-            height: 40.0,
-            child: Marquee(
-              text: widget.title,
-              //textScaleFactor: 1.0,
-              style: TextStyle(fontWeight: FontWeight.bold),
-              scrollAxis: Axis.horizontal,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              blankSpace: 20.0,
-              //velocity: 100.0,
-              //pauseAfterRound: Duration(seconds: 1),
-              startPadding: 10.0,
-              //accelerationDuration: Duration(seconds: 1),
-              //accelerationCurve: Curves.linear,
-              //decelerationDuration: Duration(milliseconds: 500),
-              //decelerationCurve: Curves.easeOut,
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 20.0),
-            child: _ProgressBar,
-          ),
-          Container(
-            height: 80.0,
-            width: 80.0,
-            child: Card(
-                elevation: 20.0,
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(40.0)
+                  child: IconButton(onPressed: () {
+                    //EasyLoading.show(status:'clicked', dismissOnTap: true);
+                    widget.onKeyDown(true);
+                    Navigator.pop(context);
+                  }, icon: Icon(Icons.keyboard_arrow_down_sharp), color: Colors.white,),
                 ),
-                child: _isPlaying
+                Container(
+                  height: 50.0,
+                  width: 50.0,
+                  margin: EdgeInsets.only(right: 8.0),
+                  child: StreamBuilder(
+                      stream: _isBuffering(),
+                      builder: (context, snapshot) => snapshot.data ?? true ? Card(
+                        elevation: 20.0,
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(40.0)
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: CircularProgressIndicator(color: Colors.black,),
+                        ),
+                      ) : Container()
+                  ),
+                ),
+              ],
             ),
-          ),
-        ],
+            Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                AspectRatio(
+                  aspectRatio: 1,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      image: DecorationImage(image: NetworkImage(widget.imageUrl)),
+                      color: Colors.grey,
+                      borderRadius: BorderRadius.all(Radius.circular(16.0)),
+                    ),
+                  ),
+                ),
+                Container(
+                  alignment: Alignment.center,
+                  height: 40.0,
+                  child: Marquee(
+                    text: widget.title,
+                    //textScaleFactor: 1.0,
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                    scrollAxis: Axis.horizontal,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    blankSpace: 20.0,
+                    //velocity: 100.0,
+                    //pauseAfterRound: Duration(seconds: 1),
+                    startPadding: 10.0,
+                    //accelerationDuration: Duration(seconds: 1),
+                    //accelerationCurve: Curves.linear,
+                    //decelerationDuration: Duration(milliseconds: 500),
+                    //decelerationCurve: Curves.easeOut,
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 20.0),
+                  child: _ProgressBar,
+                ),
+                Container(
+                  height: 80.0,
+                  width: 80.0,
+                  child: Card(
+                      elevation: 20.0,
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(40.0)
+                      ),
+                      child: _isPlaying
+                  ),
+                ),
+              ],
+            )
+          ],
+        ),
       ),
     );
   }

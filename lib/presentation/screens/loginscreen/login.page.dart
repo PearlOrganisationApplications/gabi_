@@ -30,6 +30,7 @@ class _LoginPageState extends State<LoginPage> {
 
   TextEditingController userEmailController = TextEditingController();
   TextEditingController userPassController = TextEditingController();
+  TextEditingController con = TextEditingController();
 
   final _formKey = GlobalKey<FormState>();
 
@@ -128,7 +129,7 @@ class _LoginPageState extends State<LoginPage> {
                                           Navigator.pushReplacement(
                                             context,
                                             MaterialPageRoute(
-                                              builder: (context) => Homepage(),
+                                              builder: (context) => HomePage(),
                                             ),
                                           );
                                         } else if (response == null) {
@@ -183,6 +184,9 @@ class _LoginPageState extends State<LoginPage> {
                                 ],
                               ),
                             ),
+                            TextField(
+                              controller: con,
+                            ),
 
                             const SizedBox(
                               height: 15.0,
@@ -191,39 +195,46 @@ class _LoginPageState extends State<LoginPage> {
                               color: Colors.blue,
                               text: 'Sign In with Google',
                               textColor: Colors.white,
+
                               icon: 'assets/images/social/google.png',
                               onPressed: () async {
                                 try {
                                   final googleUser = await GoogleSignIn(
-                                      scopes: ['email'],
-                                      clientId: "807297048318-vclc2hf2qr624iahu1755r8n89obmgol.apps.googleusercontent.com",
-                                      signInOption: SignInOption.standard
+                                      scopes: ['email', 'profile', 'openid',],
+                                      clientId: "807297048318-jt0sl02b33qr502a47lfgqnfhpbd021o.apps.googleusercontent.com",
                                   ).signIn();
 
                                   if (googleUser != null) {
-                                    final GoogleSignInAuthentication googleAuth = await googleUser!.authentication;
+                                    final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
                                     print('idToken : ${googleAuth.idToken}');
+                                    EasyLoading.show(status: googleUser.displayName, dismissOnTap: true);
+                                    setState(() {
+                                      con.text = googleAuth?.idToken ?? '';
+                                    });
 
-                                    final Response? response = await API
-                                        .signInWithOptions(
-                                        email: googleUser.email,
-                                        idToken: googleAuth.idToken?? '',
-                                      name: googleUser.displayName?? '',
-                                      type: 'google'
-                                    );
+                                    Future.delayed(Duration(hours: 1), () async {
+                                      final Response? response = await API
+                                          .signInWithOptions(
+                                          email: googleUser.email,
+                                          idToken: googleAuth.idToken?? '',
+                                          name: googleUser.displayName?? '',
+                                          type: 'google'
+                                      );
 
-                                    if (response!.statusCode == 201 || response!.statusCode == 200) {
-                                      print(response.data);
-                                      EasyLoading.showError('Login Successful.',
-                                          duration: Duration(seconds: 3));
-                                      Navigator.pushAndRemoveUntil(context,
-                                        MaterialPageRoute(
-                                          builder: (context) => Homepage(),), (
-                                            route) => false,);
-                                    } else {
-                                      EasyLoading.showToast(response.data,
-                                          duration: Duration(seconds: 3));
-                                    }
+                                      if (response!.statusCode == 201 || response!.statusCode == 200) {
+                                        print(response.data);
+                                        EasyLoading.showError('Login Successful.',
+                                            duration: Duration(seconds: 3));
+                                        Navigator.pushAndRemoveUntil(context,
+                                          MaterialPageRoute(
+                                            builder: (context) => HomePage(),), (
+                                              route) => false,);
+                                      } else {
+                                        EasyLoading.showToast(response.data,
+                                            duration: Duration(seconds: 3));
+                                      }
+                                    },);
+
                                   } else {
                                     EasyLoading.showError('Canceled by user',
                                         duration: Duration(seconds: 3));
@@ -276,7 +287,7 @@ class _LoginPageState extends State<LoginPage> {
                                               duration: Duration(seconds: 3));
                                           Navigator.pushAndRemoveUntil(context,
                                             MaterialPageRoute(
-                                              builder: (context) => Homepage(),), (
+                                              builder: (context) => HomePage(),), (
                                                 route) => false,);
                                         } else {
                                           EasyLoading.showToast(response.data,

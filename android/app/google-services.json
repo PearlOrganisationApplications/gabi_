@@ -1,0 +1,54 @@
+{
+  "project_info": {
+    "project_number": "807297048318",
+    "project_id": "gabiapp",
+    "storage_bucket": "gabiapp.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:807297048318:android:1d657252217abc6c0a0faf",
+        "android_client_info": {
+          "package_name": "com.pearlorganisation.gabi"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "807297048318-dbri9kece1dsreqtf723ltsbgm1nt70k.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.pearlorganisation.gabi",
+            "certificate_hash": "128f191c5ab0d0dc1b68a388a18d62f0cd219f6f"
+          }
+        },
+        {
+          "client_id": "807297048318-l9qkn3pij12nulop1d7pe7oqdtt415o6.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCxwrhny_u6edT_RlMlWuO4aaj2myV2gtE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "807297048318-4kdg3p5rpopml778u9gld13gk51ogmun.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "807297048318-90cdc8de5hut392hhdtrntck00m5dre4.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.pearlorganisation.gabi"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
