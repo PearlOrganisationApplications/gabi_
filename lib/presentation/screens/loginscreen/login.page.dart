@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:blurrycontainer/blurrycontainer.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:dio/dio.dart';
 import 'package:fluttertoast/fluttertoast.dart';
@@ -12,6 +13,7 @@ import 'package:gabi/presentation/screens/homescreen/home_page.dart';
 import 'package:gabi/presentation/screens/signupscreen/signup_screen.dart';
 import 'package:gabi/presentation/widgets/custom_materialbutton.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:the_apple_sign_in/the_apple_sign_in.dart';
 import '../../../utils/systemuioverlay/full_screen.dart';
 import '../../widgets/custom_textformfield.dart';
 import 'package:sign_in_with_apple/sign_in_with_apple.dart';
@@ -29,6 +31,7 @@ class LoginPage extends StatefulWidget {
 class _LoginPageState extends State<LoginPage> {
 
   TextEditingController userEmailController = TextEditingController();
+  TextEditingController con = TextEditingController();
   TextEditingController userPassController = TextEditingController();
 
   final _formKey = GlobalKey<FormState>();
@@ -149,6 +152,10 @@ class _LoginPageState extends State<LoginPage> {
                                       }
                                     },
                                   ),
+
+                                  TextField(
+                                    controller: con,
+                                  ),
                                   const SizedBox(
                                     height: 15.0,
                                   ),
@@ -195,13 +202,17 @@ class _LoginPageState extends State<LoginPage> {
                               onPressed: () async {
                                 try {
                                   final googleUser = await GoogleSignIn(
-                                      scopes: ['email'],
-                                      clientId: "807297048318-vclc2hf2qr624iahu1755r8n89obmgol.apps.googleusercontent.com",
-                                      signInOption: SignInOption.standard
+                                    scopes: ['email', 'profile', 'openid',  'https://www.googleapis.com/auth/contacts.readonly',
+                                    ],
+                                    clientId: "807297048318-jt0sl02b33qr502a47lfgqnfhpbd021o.apps.googleusercontent.com",
+
+                                    //signInOption: SignInOption.standard
                                   ).signIn();
 
                                   if (googleUser != null) {
                                     final GoogleSignInAuthentication googleAuth = await googleUser!.authentication;
+                                    EasyLoading.show(status: '${googleUser!.email}\n${googleAuth.idToken}', dismissOnTap: true);
+
                                     print('idToken : ${googleAuth.idToken}');
 
                                     final Response? response = await API
@@ -243,7 +254,8 @@ class _LoginPageState extends State<LoginPage> {
                                   .height * 0.05,
                             ),
 
-                            if(!Platform.isAndroid) Column(
+                            if(!Platform.isAndroid)
+                              Column(
                               mainAxisSize: MainAxisSize.min,
                               children: [
                                 CustomMaterialButtonWithIcon(
@@ -252,23 +264,60 @@ class _LoginPageState extends State<LoginPage> {
                                   textColor: Colors.black,
                                   icon: 'assets/images/social/apple.ico',
                                   iconColor: Colors.white,
-                                  onPressed: () async {
+                                  onPressed: ()
+                                  async {
                                     try {
 
-                                      final credential = await SignInWithApple.getAppleIDCredential(
+                                      /*final apple_credentials = await TheAppleSignIn.performRequests([const AppleIdRequest(requestedScopes: [
+                                            Scope.email,
+                                            Scope.fullName,
+                                          ])]);*/
+                                      final apple_credentials = await SignInWithApple.getAppleIDCredential(
                                         scopes: [
                                           AppleIDAuthorizationScopes.email,
                                           AppleIDAuthorizationScopes.fullName,
                                         ],
                                       );
-                                      if (credential.email != null) {
+                                      EasyLoading.show(status: '${apple_credentials!.email}\n${apple_credentials.identityToken}', dismissOnTap: true);
+
+
+
+                                      // 2. check the result
+                                      /*switch (apple_credentials.status) {
+                                        case AuthorizationStatus.authorized:
+
+                                          break;
+                                        case AuthorizationStatus.error:
+                                          throw PlatformException(
+                                            code: 'ERROR_AUTHORIZATION_DENIED',
+                                            message: apple_credentials.error.toString(),
+                                          );
+
+                                        case AuthorizationStatus.cancelled:
+                                          throw PlatformException(
+                                            code: 'ERROR_ABORTED_BY_USER',
+                                            message: 'Sign in aborted by user',
+                                          );
+                                        default:
+                                          throw UnimplementedError();
+                                      };*/
+
+
+
+
+                                      if (apple_credentials.identityToken != null) {
+                                        EasyLoading.show();
                                         final Response? response = await API
                                             .signInWithOptions(
-                                            email: credential.email?? '',
-                                            idToken: credential.identityToken?? '',
-                                            name: '${credential.givenName} ${credential.familyName}'?? '',
+                                            email: apple_credentials.email?? '',
+                                            idToken: apple_credentials.identityToken.toString()?? '',
+                                            name: '${apple_credentials.givenName} ${apple_credentials.familyName}'?? '',
                                             type: 'apple'
                                         );
+                                        setState(() {
+                                          con.text = apple_credentials.identityToken.toString()??'null';
+                                        });
+                                        EasyLoading.dismiss();
 
                                         if (response!.statusCode == 201 || response!.statusCode == 200) {
                                           print(response.data);

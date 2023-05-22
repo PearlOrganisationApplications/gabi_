@@ -3,23 +3,23 @@
 <plist version="1.0">
 <dict>
 	<key>CLIENT_ID</key>
-	<string>293161527580-dset26u6713b8vh6bdisl1hagdafpgc1.apps.googleusercontent.com</string>
+	<string>807297048318-90cdc8de5hut392hhdtrntck00m5dre4.apps.googleusercontent.com</string>
 	<key>REVERSED_CLIENT_ID</key>
-	<string>com.googleusercontent.apps.293161527580-dset26u6713b8vh6bdisl1hagdafpgc1</string>
+	<string>com.googleusercontent.apps.807297048318-90cdc8de5hut392hhdtrntck00m5dre4</string>
 	<key>ANDROID_CLIENT_ID</key>
-	<string>293161527580-b1r0h5asu1kpi9trb64obgttkaoqbloa.apps.googleusercontent.com</string>
+	<string>807297048318-dbri9kece1dsreqtf723ltsbgm1nt70k.apps.googleusercontent.com</string>
 	<key>API_KEY</key>
-	<string>AIzaSyC5eK5ffFbR4fMqs4gdPZZKypdOHRSBuvw</string>
+	<string>AIzaSyAZKPLKhT79zeHMna63KLRAcHROeJrGH4k</string>
 	<key>GCM_SENDER_ID</key>
-	<string>293161527580</string>
+	<string>807297048318</string>
 	<key>PLIST_VERSION</key>
 	<string>1</string>
 	<key>BUNDLE_ID</key>
 	<string>com.pearlorganisation.gabi</string>
 	<key>PROJECT_ID</key>
-	<string>gabi-383304</string>
+	<string>gabiapp</string>
 	<key>STORAGE_BUCKET</key>
-	<string>gabi-383304.appspot.com</string>
+	<string>gabiapp.appspot.com</string>
 	<key>IS_ADS_ENABLED</key>
 	<false></false>
 	<key>IS_ANALYTICS_ENABLED</key>
@@ -31,6 +31,6 @@
 	<key>IS_SIGNIN_ENABLED</key>
 	<true></true>
 	<key>GOOGLE_APP_ID</key>
-	<string>1:293161527580:ios:5270b389cfc70cd19032d9</string>
+	<string>1:807297048318:ios:165e4b6f72c3ddcd0a0faf</string>
 </dict>
 </plist>
