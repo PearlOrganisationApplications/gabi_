@@ -37,7 +37,7 @@ Future<void> main() async {
       ignoreSsl: true // option: set to false to disable working with http links (default: false)
   );
 
-  GoogleSignIn().signOut();
+
   configLoading();
   runApp(
       const ProviderScope(

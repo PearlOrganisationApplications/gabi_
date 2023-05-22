@@ -1069,14 +1069,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.0.8"
-  sound_analysis:
-    dependency: "direct main"
-    description:
-      name: sound_analysis
-      sha256: "06c77baf44f33325a7a5292f1e667e8ee495cda3dfc0ceff6e7bf55410afe715"
-      url: "https://pub.dev"
-    source: hosted
-    version: "0.0.3"
   source_span:
     dependency: transitive
     description:
@@ -1165,6 +1157,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.4.16"
+  the_apple_sign_in:
+    dependency: "direct main"
+    description:
+      name: the_apple_sign_in
+      sha256: "52163df2619e5461f63559002eee171fe78ebab3af6f6f34c4026df5f15859ad"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.1.1"
   typed_data:
     dependency: transitive
     description:
