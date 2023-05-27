@@ -4,23 +4,27 @@
 import 'package:agora_rtc_engine/agora_rtc_engine.dart';
 import 'package:agora_rtm/agora_rtm.dart';
 import 'package:blurrycontainer/blurrycontainer.dart';
+import 'package:dio/dio.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_countdown_timer/countdown_timer_controller.dart';
 import 'package:flutter_countdown_timer/flutter_countdown_timer.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
+import 'package:gabi/app/api/app_api.dart';
+import 'package:gabi/app/models/channel_model.dart';
 import 'package:gabi/app/preferences/app_preferences.dart';
 import 'package:gabi/presentation/widgets/live_button.dart';
 import 'package:permission_handler/permission_handler.dart';
 
+import '../../../app/models/comment_model.dart';
 import '../../../utils/streamconfigs/appId.dart';
 import '../../../utils/systemuioverlay/full_screen.dart';
 import '../homescreen/widgets/custom_dialogs.dart';
 import 'messaging.dart';
 
 class Broadcaster extends StatefulWidget {
-  final String channelName;
-  const Broadcaster({Key? key, required this.channelName}) : super(key: key);
+  final ChannelDataModel channelData;
+  const Broadcaster({Key? key, required this.channelData}) : super(key: key);
 
   @override
   State<Broadcaster> createState() => _BroadcasterState();
@@ -82,7 +86,7 @@ class _BroadcasterState extends State<Broadcaster> {
           _localUserJoined = true;
           _isStreaming = true;
           controller = CountdownTimerController(endTime: DateTime.now()
-              .millisecondsSinceEpoch + 10000 * 60, onEnd: onEnd);
+              .millisecondsSinceEpoch + 20000 * 60, onEnd: onEnd);
         });
       },
       onUserJoined: (RtcConnection connection, int remoteUid, int elapsed) {
@@ -131,7 +135,7 @@ class _BroadcasterState extends State<Broadcaster> {
     await _engine.joinChannel(
       uid: 0,
       token: '',
-      channelId: widget.channelName,
+      channelId: widget.channelData.channelName,
       options: ChannelMediaOptions(),
     );
   }
@@ -143,14 +147,22 @@ class _BroadcasterState extends State<Broadcaster> {
     controller?.dispose();
   }
   Future<void> onEnd() async {
-    setState(() {
-      _isStreaming = false;
-    });
-    await destroyEngine();
-    CustomDialogs.liveStreamFinishedDialogBox(onTap: (){
-      Navigator.pop(context);
-    });
 
+    EasyLoading.show();
+    bool response = await API.disposeChannel(channelId: widget.channelData.channelId, userType: 'broadcast');
+    EasyLoading.dismiss();
+
+    if(response) {
+      setState(() {
+        _isStreaming = false;
+      });
+      await destroyEngine();
+      CustomDialogs.liveStreamFinishedDialogBox(onTap: () {
+        Navigator.pop(context);
+      });
+    }else{
+      EasyLoading.showError('Unable to process this request');
+    }
   }
 
   // Create UI with local view and remote view
@@ -663,7 +675,31 @@ class _BroadcasterState extends State<Broadcaster> {
 
 
   void _onCallEnd(BuildContext context) {
-    onEnd();
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('Stop Streaming', style: TextStyle(fontWeight: FontWeight.bold),),
+        content: Text('Do you really want to Stop?'),
+        actions:[
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            //return false when click on "NO"
+            child:Text('No', style: TextStyle(fontWeight: FontWeight.bold),),
+          ),
+
+          ElevatedButton(
+            onPressed: () async {
+              onEnd();
+              Navigator.pop(context); //close Dialog
+            } ,
+            //return true when click on "Yes"
+            child:Text('Yes', style: TextStyle(fontWeight: FontWeight.bold),),
+          ),
+
+        ],
+      ),
+    );
+
     //Navigator.pop(context);
   }
 
@@ -680,7 +716,7 @@ class _BroadcasterState extends State<Broadcaster> {
 
   void _goToChatPage() {
     Navigator.of(context).push(
-        MaterialPageRoute(builder: (context) => RealTimeMessaging(channelName: widget.channelName, userName: AppPreferences.getDisplayName(),
+        MaterialPageRoute(builder: (context) => RealTimeMessaging(channelName: widget.channelData.channelName, userName: AppPreferences.getDisplayName(),
             isBroadcaster: true,
           ),)
     );
@@ -749,7 +785,7 @@ class _BroadcasterState extends State<Broadcaster> {
 
   void _toggleJoinChannel() async {
     try {
-      _rtmChannel = (await _createChannel(widget.channelName))!;
+      _rtmChannel = (await _createChannel(widget.channelData.channelName))!;
       await _rtmChannel.join();
       print('Join channel success.');
 
@@ -861,23 +897,3 @@ class _LiveAnimateState extends State<LiveAnimate> with SingleTickerProviderStat
     super.dispose();
   }
 }*/
-
-
-class CommentModel {
-  String _comment;
-  String _peerId;
-
-  CommentModel(this._comment, this._peerId);
-
-  String get peerId => _peerId;
-
-  set peerId(String value) {
-    _peerId = value;
-  }
-
-  String get comment => _comment;
-
-  set comment(String value) {
-    _comment = value;
-  }
-}

@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:gabi/app/preferences/app_preferences.dart';
 import 'package:gabi/presentation/screens/downloadscreen/download_screen.dart';
+import 'package:gabi/presentation/screens/enquiryformscreen/enquiry_form_screen.dart';
 import 'package:gabi/presentation/screens/homescreen/widgets/socialicons.dart';
 import 'package:gabi/presentation/screens/loginscreen/login.page.dart';
+import 'package:gabi/utils/downloader/downloader.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
 import '../../../../utils/systemuioverlay/full_screen.dart';
@@ -37,6 +39,7 @@ class _MyDradwerState extends State<MyDradwer> {
             onPressed: () async {
               await GoogleSignIn().signOut();
               AppPreferences.clearCredentials();
+              await Download.clearDownloadTasks();
               Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (context) => LoginPage(),), (route) => false);
             } ,
             //return true when click on "Yes"
@@ -187,12 +190,22 @@ class _MyDradwerState extends State<MyDradwer> {
                   ),
                   ListTile(
                     leading: const Icon(Icons.logout),
+                    title: const Text("Raise issue"),
+                    onTap: () {
+                      Navigator.push(context, MaterialPageRoute(builder: (context) => EnquiyformScreen(),)).then((value) => FullScreen.setColor(navigationBarColor: Colors.white,statusBarColor: Colors.black));
+                    },
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                    child: const Divider(),
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.logout),
                     title: const Text("Log out"),
                     onTap: () {
                       showLogoutPopup();
                     },
                   ),
-
                   Padding(
                     padding: const EdgeInsets.symmetric(vertical: 50.0),
                     child: Row(

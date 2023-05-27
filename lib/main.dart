@@ -1,9 +1,11 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_custom_dialog/flutter_custom_dialog.dart';
 import 'package:flutter_downloader/flutter_downloader.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:gabi/presentation/screens/profilescreen/profile_page.dart';
 
 
 import 'package:gabi/presentation/screens/splashscreen/splashscreen.dart';
@@ -39,6 +41,7 @@ Future<void> main() async {
 
 
   configLoading();
+
   runApp(
       const ProviderScope(
           child: MyApp(),
@@ -79,6 +82,7 @@ class MyApp extends StatelessWidget {
         applyElevationOverlayColor: false,
       ),
       home: const Splashscreen(),
+      //home: ProfilePage(),
       builder: EasyLoading.init(),
     );
   }

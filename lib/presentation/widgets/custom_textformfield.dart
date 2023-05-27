@@ -8,7 +8,8 @@ import 'nospace_formatter.dart';
 
 class CustomTextFormFieldEmail extends StatefulWidget {
   final onValueChanged;
-  const CustomTextFormFieldEmail({Key? key, required Function(String value) this.onValueChanged}) : super(key: key);
+  final Color? textColor;
+  const CustomTextFormFieldEmail({Key? key, required Function(String value) this.onValueChanged, this.textColor}) : super(key: key);
 
   @override
   State<CustomTextFormFieldEmail> createState() => _CustomTextFormFieldEmailState();
@@ -36,6 +37,7 @@ class _CustomTextFormFieldEmailState extends State<CustomTextFormFieldEmail> {
       maxLines: 1,
       keyboardType: TextInputType.emailAddress,
       textInputAction: TextInputAction.next,
+      style: TextStyle(color: widget.textColor??Colors.black),
       decoration: InputDecoration(
         prefixIcon: Icon(Icons.email),
         prefixIconColor: Colors.orange,
@@ -81,7 +83,8 @@ class _CustomTextFormFieldEmailState extends State<CustomTextFormFieldEmail> {
 
 class CustomTextFormFieldPassword extends StatefulWidget {
   final onValueChanged;
-  const CustomTextFormFieldPassword({Key? key, required Function(String value) this.onValueChanged}) : super(key: key);
+  final Color? textColor;
+  const CustomTextFormFieldPassword({Key? key, required Function(String value) this.onValueChanged, this.textColor}) : super(key: key);
 
   @override
   State<CustomTextFormFieldPassword> createState() => _CustomTextFormFieldPasswordState();
@@ -115,6 +118,7 @@ class _CustomTextFormFieldPasswordState extends State<CustomTextFormFieldPasswor
       keyboardType: TextInputType.visiblePassword,
       inputFormatters: [NoSpaceFormatter()],
       textInputAction: TextInputAction.done,
+      style: TextStyle(color: widget.textColor??Colors.black),
       decoration: InputDecoration(
         suffixIconColor: _obscuredPassword ? Colors.grey : Colors.red,
         prefixIcon: Icon(Icons.lock_rounded),

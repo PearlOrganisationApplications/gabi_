@@ -138,9 +138,10 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                       ),
                       CustomMaterialButton(
                         onPressed: () async {
+
                           if (_formKey.currentState!.validate()) {
                             EasyLoading.show();
-                            final Response? response = await API.forgetPassword(email: _emailController.text);
+                            final Response? response = await API.sendOtp(email: _emailController.text);
                             EasyLoading.dismiss();
                             if(response!.data['message'] == 'mail sent'){
                               EasyLoading.showError('OTP Sent to your email.', duration: Duration(seconds: 3));
@@ -229,9 +230,9 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                             EasyLoading.show();
                             final Response? response = await API.verifyOtp(otp: _otpController.text);
                             EasyLoading.dismiss();
-                            if(response!.statusMessage == 'successful'){
+                            if(response!.data['success'] == 'Successfully'){
                               EasyLoading.showError('Otp Verified successfully.', duration: Duration(seconds: 3));
-                              Navigator.push(context, MaterialPageRoute(builder: (context) => ResetPasswordScreen(),));
+                              Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (context) => ResetPasswordScreen(newPassword: false),),(route) => false,);
                             }else{
                               EasyLoading.showToast(response.statusMessage.toString(), duration: Duration(seconds: 3));
                             }

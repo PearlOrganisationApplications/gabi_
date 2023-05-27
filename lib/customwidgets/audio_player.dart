@@ -9,8 +9,9 @@ class MusicPlayerDialog extends StatefulWidget {
   final String title;
   final String imageUrl;
   final onKeyDown;
+  final onPlayStart;
 
-  const MusicPlayerDialog({Key? key, required this.songUrl, required this.title, required this.imageUrl, required Function(bool value) this.onKeyDown}) : super(key: key);
+  const MusicPlayerDialog({Key? key, required this.songUrl, required this.title, required this.imageUrl, required Function(bool value) this.onKeyDown, required Function(bool value) this.onPlayStart}) : super(key: key);
 
   @override
   _MusicPlayerDialogState createState() => _MusicPlayerDialogState();
@@ -64,6 +65,7 @@ class _MusicPlayerDialogState extends State<MusicPlayerDialog> {
 
     if(_isLoading) {
       _audioPlayer.play();
+      widget.onPlayStart(true);
       setState(() {
         _isLoading = false;
       });
@@ -157,8 +159,9 @@ class _MusicPlayerDialogState extends State<MusicPlayerDialog> {
       ],
     ) :
     Container(
-      padding: EdgeInsets.only(top: MediaQuery.of(context).padding.top, left: 20.0, right: 20.0),
-      height: MediaQuery.of(context).size.height,
+      //margin: EdgeInsets.only(top: ),
+      padding: EdgeInsets.symmetric(horizontal: 20.0),
+      //height: MediaQuery.of(context).size.height - (MediaQuery.of(context).padding.top+MediaQuery.of(context).padding.bottom),
       child: WillPopScope(
         onWillPop: () async {
           widget.onKeyDown(true);

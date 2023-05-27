@@ -98,5 +98,17 @@ class Download {
     }
   }
 
+
+  static Future<void> clearDownloadTasks() async {
+    List<DownloadTask>? tasks = await FlutterDownloader.loadTasks();
+
+    if(tasks != null){
+      for (DownloadTask task in tasks) {
+        await FlutterDownloader.cancel(taskId: task.taskId);
+        await FlutterDownloader.remove(taskId: task.taskId, shouldDeleteContent: false);
+      }
+    }
+  }
+
 }
 

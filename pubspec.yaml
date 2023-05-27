@@ -77,7 +77,7 @@ dependencies:
   agora_rtm: ^1.5.0
   #sound_analysis: ^0.0.3
   sign_in_with_apple: ^4.3.0
-  the_apple_sign_in: ^1.1.1
+  #the_apple_sign_in: ^1.1.1
 
 
 

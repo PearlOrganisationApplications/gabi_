@@ -36,6 +36,9 @@ class _LoginPageState extends State<LoginPage> {
 
   @override
   Widget build(BuildContext context) {
+    if(EasyLoading.isShow){
+      EasyLoading.dismiss();
+    }
     FullScreen.setColor(
         statusBarColor: Colors.black, navigationBarColor: Colors.white);
     return Scaffold(
@@ -96,14 +99,18 @@ class _LoginPageState extends State<LoginPage> {
                                               onValueChanged: (value) {
                                                 userEmailController.text =
                                                     value;
-                                              }),
+                                              },
+                                            textColor: Colors.white,
+                                          ),
                                           const SizedBox(
                                             height: 20.0,
                                           ),
                                           CustomTextFormFieldPassword(
                                               onValueChanged: (value) {
                                                 userPassController.text = value;
-                                              }),
+                                              },
+                                            textColor: Colors.white,
+                                          ),
                                         ],
                                       )),
                                   const SizedBox(
@@ -120,29 +127,12 @@ class _LoginPageState extends State<LoginPage> {
                                             email: userEmailController.text
                                                 .toString(),
                                             password: userPassController.text
-                                                .toString());
+                                                .toString(),
+                                            type: 'normal',
+                                        );
 
                                         EasyLoading.dismiss();
-                                        if (response!.statusCode == 200) {
-                                          Fluttertoast.showToast(
-                                              msg: 'Login Successful!');
-                                          Navigator.pushReplacement(
-                                            context,
-                                            MaterialPageRoute(
-                                              builder: (context) => HomePage(),
-                                            ),
-                                          );
-                                        } else if (response == null) {
-                                          print('Response is null');
-                                          ShowSnackBar().showSnackBar(context,
-                                              'No Response from Server',
-                                              duration: Duration(seconds: 5));
-                                        } else {
-                                          print(response.toString());
-                                          ShowSnackBar().showSnackBar(
-                                              context, response.toString(),
-                                              duration: Duration(seconds: 5));
-                                        }
+                                        loginResponse(response: response);
                                       } else {
                                         ShowSnackBar().showSnackBar(
                                             context, 'Enter your credentials!',
@@ -184,77 +174,69 @@ class _LoginPageState extends State<LoginPage> {
                                 ],
                               ),
                             ),
-                            TextField(
+                            /*TextField(
                               controller: con,
-                            ),
+                            ),*/
 
                             const SizedBox(
                               height: 15.0,
                             ),
-                            CustomMaterialButtonWithIcon(
-                              color: Colors.blue,
-                              text: 'Sign In with Google',
-                              textColor: Colors.white,
 
-                              icon: 'assets/images/social/google.png',
-                              onPressed: () async {
-                                try {
-                                  final googleUser = await GoogleSignIn(
-                                      scopes: ['email', 'profile', 'openid',],
-                                      clientId: "807297048318-jt0sl02b33qr502a47lfgqnfhpbd021o.apps.googleusercontent.com",
-                                  ).signIn();
+                            Platform.isAndroid?
+                                Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    CustomMaterialButtonWithIcon(
+                                      color: Colors.blue,
+                                      text: 'Sign In with Google',
+                                      textColor: Colors.white,
 
-                                  if (googleUser != null) {
-                                    final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
-                                    print('idToken : ${googleAuth.idToken}');
-                                    EasyLoading.show(status: googleUser.displayName, dismissOnTap: true);
-                                    setState(() {
-                                      con.text = googleAuth?.idToken ?? '';
-                                    });
+                                      icon: 'assets/images/social/google.png',
+                                      onPressed: () async {
+                                        try {
+                                          await GoogleSignIn().signOut();
+                                          final googleUser = await GoogleSignIn(
+                                            scopes: ['email', 'profile', 'openid',],
+                                            clientId: "807297048318-jt0sl02b33qr502a47lfgqnfhpbd021o.apps.googleusercontent.com",
+                                          ).signIn();
 
-                                    Future.delayed(Duration(hours: 1), () async {
-                                      final Response? response = await API
-                                          .signInWithOptions(
-                                          email: googleUser.email,
-                                          idToken: googleAuth.idToken?? '',
-                                          name: googleUser.displayName?? '',
-                                          type: 'google'
-                                      );
+                                          if (googleUser != null) {
+                                            final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
+                                            //print('idToken : ${googleAuth.idToken}');
+                                            //EasyLoading.show(status: googleUser.displayName, dismissOnTap: true);
+                                            setState(() {
+                                              con.text = googleAuth?.idToken ?? '';
+                                            });
 
-                                      if (response!.statusCode == 201 || response!.statusCode == 200) {
-                                        print(response.data);
-                                        EasyLoading.showError('Login Successful.',
-                                            duration: Duration(seconds: 3));
-                                        Navigator.pushAndRemoveUntil(context,
-                                          MaterialPageRoute(
-                                            builder: (context) => HomePage(),), (
-                                              route) => false,);
-                                      } else {
-                                        EasyLoading.showToast(response.data,
-                                            duration: Duration(seconds: 3));
-                                      }
-                                    },);
+                                            EasyLoading.show();
+                                            final Response? response = await API.login(
+                                                email: googleUser.email,
+                                                clientToken: googleAuth.idToken?? '',
+                                                type: 'google'
+                                            );
+                                            EasyLoading.dismiss();
+                                            loginResponse(response: response);
 
-                                  } else {
-                                    EasyLoading.showError('Canceled by user',
-                                        duration: Duration(seconds: 3));
-                                  }
-                                } catch (exception) {
-                                  EasyLoading.showError(exception.toString(),
-                                      duration: Duration(seconds: 3));
-                                  print(
-                                      'error error - ' + exception.toString());
-                                }
-                              },
-                            ),
-                            SizedBox(
-                              height: MediaQuery
-                                  .of(context)
-                                  .size
-                                  .height * 0.05,
-                            ),
-
-                            if(!Platform.isAndroid) Column(
+                                          } else {
+                                            EasyLoading.showError('Canceled by user',
+                                                duration: Duration(seconds: 3));
+                                          }
+                                        } catch (exception) {
+                                          EasyLoading.showError(exception.toString(),
+                                              duration: Duration(seconds: 3));
+                                          print('Error: ' + exception.toString());
+                                        }
+                                      },
+                                    ),
+                                    SizedBox(
+                                      height: MediaQuery
+                                          .of(context)
+                                          .size
+                                          .height * 0.05,
+                                    ),
+                                  ],
+                                ) :
+                            Column(
                               mainAxisSize: MainAxisSize.min,
                               children: [
                                 CustomMaterialButtonWithIcon(
@@ -272,25 +254,20 @@ class _LoginPageState extends State<LoginPage> {
                                           AppleIDAuthorizationScopes.fullName,
                                         ],
                                       );
-                                      if (credential.email != null) {
-                                        final Response? response = await API
-                                            .signInWithOptions(
-                                            email: credential.email?? '',
-                                            idToken: credential.identityToken?? '',
-                                            name: '${credential.givenName} ${credential.familyName}'?? '',
-                                            type: 'apple'
-                                        );
-
-                                        if (response!.statusCode == 201 || response!.statusCode == 200) {
-                                          print(response.data);
-                                          EasyLoading.showError('Login Successful.',
-                                              duration: Duration(seconds: 3));
-                                          Navigator.pushAndRemoveUntil(context,
-                                            MaterialPageRoute(
-                                              builder: (context) => HomePage(),), (
-                                                route) => false,);
+                                      if (credential.userIdentifier != null) {
+                                        final result = await SignInWithApple.getCredentialState(credential.userIdentifier!);
+                                        if(result == CredentialState.authorized){
+                                          EasyLoading.show();
+                                          final Response? response = await API.login(
+                                              email: credential.email?? '',
+                                              appleId: credential.userIdentifier?? '',
+                                              name: '${credential.givenName} ${credential.familyName}'?? '',
+                                              type: 'apple'
+                                          );
+                                          EasyLoading.dismiss();
+                                          loginResponse(response: response);
                                         } else {
-                                          EasyLoading.showToast(response.data,
+                                          EasyLoading.showError('Unauthorized',
                                               duration: Duration(seconds: 3));
                                         }
                                       } else {
@@ -302,7 +279,7 @@ class _LoginPageState extends State<LoginPage> {
                                       EasyLoading.showError(exception.toString(),
                                           duration: Duration(seconds: 3));
                                       print(
-                                          'error error - ' + exception.toString());
+                                          'Error: ' + exception.toString());
                                     }
                                   },
                                 ),
@@ -314,26 +291,43 @@ class _LoginPageState extends State<LoginPage> {
                                 ),
                               ],
                             ),
-                            TextButton(
-                              onPressed: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                      builder: (context) => SignUpScreen()),
-                                ).then((value) {
-                                  FullScreen.setColor(
-                                      statusBarColor: Colors.black,
-                                      navigationBarColor: Colors.white);
-                                });
-                              },
-                              child: const Text(
-                                "New User? Sign up!",
-                                style: TextStyle(
-                                  color: Colors.black,
-                                  fontSize: 15.0,
+
+
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                InkWell(
+                                  onTap: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                          builder: (context) => SignUpScreen()),
+                                    ).then((value) {
+                                      FullScreen.setColor(
+                                          statusBarColor: Colors.black,
+                                          navigationBarColor: Colors.white);
+                                    });
+                                  },
+                                  child: Container(
+                                    alignment: Alignment.center,
+                                    height: 40.0,
+                                    child: Text.rich(
+                                      TextSpan(
+                                          text: 'New User? ', style: TextStyle(color: Colors.black, fontSize: 16.0),
+                                          children: [
+                                            TextSpan(
+                                              text: 'Sign up!', style: TextStyle(/*decoration: TextDecoration.underline,*/ color: Colors.blue, fontSize: 18.0),
+                                            ),
+                                          ]
+                                      ),
+                                    ),
+                                  ),
                                 ),
-                              ),
+                              ],
                             ),
+
+
+
                             const SizedBox(
                               height: 20.0,
                             ),
@@ -347,6 +341,32 @@ class _LoginPageState extends State<LoginPage> {
         ),
       ),
     );
+  }
+
+  void loginResponse({Response? response}) {
+    if (response == null) {
+      ShowSnackBar().showSnackBar(context,
+          'No Response from Server',
+          duration: Duration(seconds: 5));
+    }else if (response.data['status']) {
+      Fluttertoast.showToast(
+          msg: 'Login Successful!');
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (context) => HomePage(),
+        ),
+      );
+    }else if (!response.data['status']) {
+      ShowSnackBar().showSnackBar(
+          context, 'Wrong credentials!',
+          duration: Duration(seconds: 5));
+    } else {
+      print(response.toString());
+      ShowSnackBar().showSnackBar(
+          context, response.toString(),
+          duration: Duration(seconds: 5));
+    }
   }
 
 }
