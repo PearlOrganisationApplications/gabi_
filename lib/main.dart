@@ -10,6 +10,7 @@ import 'package:gabi/presentation/screens/profilescreen/profile_page.dart';
 
 import 'package:gabi/presentation/screens/splashscreen/splashscreen.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:just_audio_background/just_audio_background.dart';
 import 'app/constants/app_strings.dart';
 import 'app/preferences/app_preferences.dart';
 
@@ -39,7 +40,11 @@ Future<void> main() async {
       ignoreSsl: true // option: set to false to disable working with http links (default: false)
   );
 
-
+  await JustAudioBackground.init(
+    androidNotificationChannelId: 'com.ryanheise.bg_demo.channel.audio',
+    androidNotificationChannelName: 'Audio playback',
+    androidNotificationOngoing: true,
+  );
   configLoading();
 
   runApp(

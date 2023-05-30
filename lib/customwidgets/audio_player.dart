@@ -136,12 +136,6 @@ class _MusicPlayerDialogState extends State<MusicPlayerDialog> {
     super.initState();
   }
 
-  @override
-  void dispose() {
-    _audioPlayer.dispose();
-    super.dispose();
-  }
-
 
 
   @override
