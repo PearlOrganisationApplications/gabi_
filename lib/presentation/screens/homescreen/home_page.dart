@@ -5,6 +5,7 @@ import 'package:audio_service/audio_service.dart';
 import 'package:audio_video_progress_bar/audio_video_progress_bar.dart';
 import 'package:carousel_indicator/carousel_indicator.dart';
 import 'package:carousel_slider/carousel_slider.dart';
+import 'package:dio/dio.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_custom_dialog/flutter_custom_dialog.dart';
@@ -59,12 +60,12 @@ class _HomePageState extends State<HomePage> {
   
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   DateTime? backButtonPressTime;
-  final List<String> imagesList = [
-    'assets/images/social/test.jpg',
+  List<String> imagesList = [
     'assets/images/social/test.jpg',
     'assets/images/social/test.jpg',
     'assets/images/social/test.jpg',
   ];
+  bool _networkBanner = false;
   List<Map<String, dynamic>> trendingList = [];
   List<Map<String, dynamic>> recentsList = [];
   List<Map<String, dynamic>> allSongsList = [];
@@ -104,7 +105,10 @@ class _HomePageState extends State<HomePage> {
   });
   final all_songs_Provider = FutureProvider((ref) async {
     final response = await API.allSongs();
+    print(response.toString());
     return response;
+
+
   });
   final indicatorPositionProvider = StateProvider<int>((ref) => 0);
 
@@ -149,6 +153,7 @@ class _HomePageState extends State<HomePage> {
 
   @override
   void initState() {
+    loadBanners();
     init();
     super.initState();
   }
@@ -164,43 +169,43 @@ class _HomePageState extends State<HomePage> {
       onWillPop: () => handleWillPop(context),
       child: Consumer(
         builder: (context, ref, child) {
-          return RefreshIndicator(
-            onRefresh: ()async{
-              await ref.refresh(recently_played_Provider);
-              await ref.refresh(trendingProvider);
-              await ref.refresh(all_songs_Provider);
-              print('done');
-            },
-            child: Scaffold(
-              key: _scaffoldKey,
-              appBar: AppBar(
-                iconTheme: const IconThemeData(color: Colors.white),
-                backgroundColor: Colors.black,
-                title: Text('GABI', style: TextStyle(color: Colors.white),),
-                actions: [
-                  Padding(
-                    padding:
-                    const EdgeInsets.only(top: 14.0, bottom: 14.0, right: 8.0),
-                    child:
-                    InkWell(
-                      onTap: () {
-                        //Navigator.push(context, MaterialPageRoute(builder: (context) => LiveStreamOptions(),));
-                        CustomDialogs.streamOptionsDialog(context: context);
-                        //CustomDialogBox(title_button1: 'START', title_button2: 'JOIN', context: context);
-                      },
-                      child: LiveButtonWidget(),
-                    ),
-                  )
-                ],
-              ),
-              drawer: const MyDradwer(),
-              body: SafeArea(
-                child: Stack(
-                  children: [
-                    NotificationListener<OverscrollIndicatorNotification>(
-                      onNotification: (OverscrollIndicatorNotification overscroll) {
-                        overscroll.disallowIndicator();
-                        return true;
+          return Scaffold(
+            key: _scaffoldKey,
+            appBar: AppBar(
+              iconTheme: const IconThemeData(color: Colors.white),
+              backgroundColor: Colors.black,
+              title: Text('GABI', style: TextStyle(color: Colors.white),),
+              actions: [
+                Padding(
+                  padding:
+                  const EdgeInsets.only(top: 14.0, bottom: 14.0, right: 8.0),
+                  child:
+                  InkWell(
+                    onTap: () {
+                      //Navigator.push(context, MaterialPageRoute(builder: (context) => LiveStreamOptions(),));
+                      CustomDialogs.streamOptionsDialog(context: context);
+                      //CustomDialogBox(title_button1: 'START', title_button2: 'JOIN', context: context);
+                    },
+                    child: LiveButtonWidget(),
+                  ),
+                )
+              ],
+            ),
+            drawer: const MyDradwer(),
+            body: SafeArea(
+              child: Stack(
+                children: [
+                  NotificationListener<OverscrollIndicatorNotification>(
+                    onNotification: (OverscrollIndicatorNotification overscroll) {
+                      overscroll.disallowIndicator();
+                      return true;
+                    },
+                    child: RefreshIndicator(
+                      onRefresh: ()async{
+                        await ref.refresh(recently_played_Provider);
+                        await ref.refresh(trendingProvider);
+                        await ref.refresh(all_songs_Provider);
+                        loadBanners();
                       },
                       child: SingleChildScrollView(
                         child: Column(
@@ -215,8 +220,19 @@ class _HomePageState extends State<HomePage> {
                                   children: [
                                     CarouselSlider(
                                       items: imagesList.map((item) => Container(
-                                        child: Center(
-                                          child: Image.asset(item, fit: BoxFit.cover),
+                                        child: Stack(
+                                          children: [
+                                            Center(
+                                              child: CircularProgressIndicator(),
+                                            ),
+                                            Container(
+                                              width: MediaQuery.of(context).size.width * 0.9,
+                                              height: MediaQuery.of(context).size.width * 0.9,
+                                              child: _networkBanner
+                                                  ? Image.network(item, fit: BoxFit.fill)
+                                                  : Image.asset(item, fit: BoxFit.fill),
+                                            ),
+                                          ],
                                         ),
                                       )).toList(),
 
@@ -422,230 +438,56 @@ class _HomePageState extends State<HomePage> {
                         ),
                       ),
                     ),
-                    /*StreamBuilder<PlayerState>(
-                      stream: _audioPlayer.playerStateStream,
-                      builder: (context, snapshot) {
-                        final playerState = snapshot.data;
-                        final processingState = playerState?.processingState;
-                        final playing = playerState?.playing;
+                  ),
+                  /*StreamBuilder<PlayerState>(
+                    stream: _audioPlayer.playerStateStream,
+                    builder: (context, snapshot) {
+                      final playerState = snapshot.data;
+                      final processingState = playerState?.processingState;
+                      final playing = playerState?.playing;
 
-                        if(processingState == ProcessingState.loading){
-                          return Center(child: CircularProgressIndicator(),);
-                        }else if (processingState == ProcessingState.buffering) {
-                          return Align(
-                            alignment: Alignment.bottomLeft,
-                            child: Container(
-                              width: MediaQuery.of(context).size.width,
-                              height: 60.0,
-                              color: Colors.white.withOpacity(0.99),
-                              child: Row(
-                                children: [
-                                  Expanded(
-                                      child: StreamBuilder<SequenceState?>(
-                                        stream: _audioPlayer.sequenceStateStream,
-                                        builder: (context, snapshot) {
-                                          final state = snapshot.data;
-                                          if (state?.sequence.isEmpty ?? true) {
-                                            return const SizedBox();
-                                          }
-                                          final metadata = state!.currentSource!.tag as MediaItem;
-                                          return Row(
-                                            crossAxisAlignment: CrossAxisAlignment.center,
-                                            children: [
-                                              Padding(
-                                                padding: const EdgeInsets.all(8.0),
-                                                child: Center(
-                                                    child:
-                                                    Image.network(metadata.artUri.toString())),
-                                              ),
-                                              Column(
-                                                children: [
-                                                  Text(metadata.album!,
-                                                      style: Theme.of(context).textTheme.titleLarge),
-                                                  Text(metadata.title),
-                                                ],
-                                              )
-
-                                            ],
-                                          );
-                                        },
-                                      ),
-                                  ),
-                                  Container(
-                                    margin: EdgeInsets.only(left: 5.0),
-                                    height: 40.0,
-                                    width: 40.0,
-                                    decoration: BoxDecoration(
-                                      image: DecorationImage(image: AssetImage('assets/icons/music.png')),
-                                    ),
-                                  ),
-                                  Expanded(
-                                      child: Container(
-                                        padding: const EdgeInsets.symmetric(horizontal: 4.0),
-                                        height: 40.0,
-                                        child: Column(
-                                          mainAxisAlignment: MainAxisAlignment.center,
-                                          crossAxisAlignment: CrossAxisAlignment.start,
-                                          children: [
-                                            Text(currentSong?.title?? 'This is the Song title', style: TextStyle(fontSize: 20.0, fontWeight: FontWeight.w700), overflow: TextOverflow.ellipsis,),
-                                            Text(currentSong?.publishedBy?? 'Singer Name'),
-                                          ],
-                                        ),
-                                      )
-                                  ),
-                                  Container(
-                                    margin: const EdgeInsets.all(8.0),
-                                    width: 40.0,
-                                    height: 40.0,
-                                    child: const CircularProgressIndicator(),
-                                  ),
-                                  IconButton(onPressed: () {
-                                    setState(() {
-                                      currentSong = null;
-                                      _isMiniPlayerVisible = false;
-                                    });
-                                  }, icon: Icon(Icons.close)),
-                                ],
-                              ),
-                            ),
-                          );
-                        } else if (playing != true) {
-                          return IconButton(
-                            icon: const Icon(Icons.play_arrow),
-                            iconSize: 64.0,
-                            onPressed: _audioPlayer.play,
-                          );
-                        } else if (processingState != ProcessingState.completed) {
-                          return IconButton(
-                            icon: const Icon(Icons.pause),
-                            iconSize: 64.0,
-                            onPressed: _audioPlayer.pause,
-                          );
-                        } else {
-                          return IconButton(
-                            icon: const Icon(Icons.replay),
-                            iconSize: 64.0,
-                            onPressed: () => _audioPlayer.seek(Duration.zero,
-                                index: _audioPlayer.effectiveIndices!.first),
-                          );
-                        }
-                      },
-                    ),*/
-
-                    if(_isMiniPlayerVisible)Align(
-                      alignment: Alignment.bottomLeft,
-                      child: StreamBuilder<PlayerState>(
-                          stream: _audioPlayer.playerStateStream,
-                          builder: (context, snapshot) {
-                            final playerState = snapshot.data;
-                            final processingState = playerState?.processingState;
-                            final playing = playerState?.playing;
-
-                            return InkWell(
-                              onTap: (){
-                                showBottomSheet();
-                              },
-                              child: Container(
-                                child: (processingState == ProcessingState.loading)?Container(
-                                    width: MediaQuery.of(context).size.width,
-                                    height: 60.0,
-                                    color: Colors.white.withOpacity(0.94),
-                                    child: Center(child: CircularProgressIndicator(),)
-                                ):Container(
-                                  width: MediaQuery.of(context).size.width,
-                                  height: 60.0,
-                                  color: Colors.white.withOpacity(0.94),
-                                  child: Row(
-                                    children: [
-                                      Expanded(
-                                        child: StreamBuilder<SequenceState?>(
-                                          stream: _audioPlayer.sequenceStateStream,
-                                          builder: (context, snapshot) {
-                                            final state = snapshot.data;
-                                            if (state?.sequence.isEmpty ?? true) {
-                                              return const SizedBox();
-                                            }
-                                            final metadata = state!.currentSource!.tag as MediaItem;
-                                            API.addRecentSong(id: int.parse(metadata.id));
-                                            return Row(
-                                              crossAxisAlignment: CrossAxisAlignment.center,
-                                              mainAxisAlignment: MainAxisAlignment.start,
-                                              children: [
-                                                Container(
-                                                  margin: EdgeInsets.symmetric(horizontal: 5.0),
-                                                  width: 40.0,
-                                                    height: 40.0,
-                                                    child: (metadata.artUri.toString() != '')
-                                                        ? Image.network(metadata.artUri.toString(), fit: BoxFit.fitHeight,)
-                                                        : Image.asset('assets/icons/music.png'),
-                                                ),
-                                                Expanded(
-                                                  child: Column(
-                                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                                    mainAxisAlignment: MainAxisAlignment.center,
-                                                    children: [
-                                                      Text(metadata.title, style: Theme.of(context).textTheme.titleLarge, overflow: TextOverflow.ellipsis,),
-                                                      Text(metadata.album!, overflow: TextOverflow.ellipsis,),
-                                                    ],
-                                                  ),
-                                                )
-
-                                              ],
-                                            );
-                                          },
-                                        ),
-                                      ),
-
-
-                                      LayoutBuilder(builder: (context, constraints) {
-                                        if (processingState == ProcessingState.loading || processingState == ProcessingState.buffering) {
-                                          return Container(
-                                            margin: const EdgeInsets.all(8.0),
-                                            width: 40.0,
-                                            height: 40.0,
-                                            child: const CircularProgressIndicator(),
-                                          );
-                                        } else if (playing != true) {
-                                          return IconButton(
-                                            icon: const Icon(Icons.play_arrow),
-                                            iconSize: 36.0,
-                                            onPressed: _audioPlayer.play,
-                                          );
-                                        } else if (processingState != ProcessingState.completed) {
-                                          return IconButton(
-                                            icon: const Icon(Icons.pause),
-                                            iconSize: 36.0,
-                                            onPressed: _audioPlayer.pause,
-                                          );
-                                        } else {
-                                          return IconButton(
-                                            icon: const Icon(Icons.replay),
-                                            iconSize: 36.0,
-                                            onPressed: () => _audioPlayer.seek(Duration.zero,
-                                                index: _audioPlayer.effectiveIndices!.first),
-                                          );
-                                        }
-                                      },),
-                                      IconButton(onPressed: () {
-                                        setState(() {
-                                          _audioPlayer.stop();
-                                          setState(() {
-                                            _isMiniPlayerVisible = false;
-                                          });
-                                        });
-                                      }, icon: Icon(Icons.close)),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            );
-
-                          /*return Container(
+                      if(processingState == ProcessingState.loading){
+                        return Center(child: CircularProgressIndicator(),);
+                      }else if (processingState == ProcessingState.buffering) {
+                        return Align(
+                          alignment: Alignment.bottomLeft,
+                          child: Container(
                             width: MediaQuery.of(context).size.width,
                             height: 60.0,
                             color: Colors.white.withOpacity(0.99),
                             child: Row(
                               children: [
+                                Expanded(
+                                    child: StreamBuilder<SequenceState?>(
+                                      stream: _audioPlayer.sequenceStateStream,
+                                      builder: (context, snapshot) {
+                                        final state = snapshot.data;
+                                        if (state?.sequence.isEmpty ?? true) {
+                                          return const SizedBox();
+                                        }
+                                        final metadata = state!.currentSource!.tag as MediaItem;
+                                        return Row(
+                                          crossAxisAlignment: CrossAxisAlignment.center,
+                                          children: [
+                                            Padding(
+                                              padding: const EdgeInsets.all(8.0),
+                                              child: Center(
+                                                  child:
+                                                  Image.network(metadata.artUri.toString())),
+                                            ),
+                                            Column(
+                                              children: [
+                                                Text(metadata.album!,
+                                                    style: Theme.of(context).textTheme.titleLarge),
+                                                Text(metadata.title),
+                                              ],
+                                            )
+
+                                          ],
+                                        );
+                                      },
+                                    ),
+                                ),
                                 Container(
                                   margin: EdgeInsets.only(left: 5.0),
                                   height: 40.0,
@@ -668,7 +510,12 @@ class _HomePageState extends State<HomePage> {
                                       ),
                                     )
                                 ),
-                                IconButton(onPressed: () {}, icon: Icon(Icons.play_arrow)),
+                                Container(
+                                  margin: const EdgeInsets.all(8.0),
+                                  width: 40.0,
+                                  height: 40.0,
+                                  child: const CircularProgressIndicator(),
+                                ),
                                 IconButton(onPressed: () {
                                   setState(() {
                                     currentSong = null;
@@ -677,12 +524,182 @@ class _HomePageState extends State<HomePage> {
                                 }, icon: Icon(Icons.close)),
                               ],
                             ),
-                          );*/
-                        }
-                      ),
-                    )
-                  ],
-                ),
+                          ),
+                        );
+                      } else if (playing != true) {
+                        return IconButton(
+                          icon: const Icon(Icons.play_arrow),
+                          iconSize: 64.0,
+                          onPressed: _audioPlayer.play,
+                        );
+                      } else if (processingState != ProcessingState.completed) {
+                        return IconButton(
+                          icon: const Icon(Icons.pause),
+                          iconSize: 64.0,
+                          onPressed: _audioPlayer.pause,
+                        );
+                      } else {
+                        return IconButton(
+                          icon: const Icon(Icons.replay),
+                          iconSize: 64.0,
+                          onPressed: () => _audioPlayer.seek(Duration.zero,
+                              index: _audioPlayer.effectiveIndices!.first),
+                        );
+                      }
+                    },
+                  ),*/
+
+                  if(_isMiniPlayerVisible)Align(
+                    alignment: Alignment.bottomLeft,
+                    child: StreamBuilder<PlayerState>(
+                        stream: _audioPlayer.playerStateStream,
+                        builder: (context, snapshot) {
+                          final playerState = snapshot.data;
+                          final processingState = playerState?.processingState;
+                          final playing = playerState?.playing;
+
+                          return InkWell(
+                            onTap: (){
+                              showBottomSheet();
+                            },
+                            child: Container(
+                              child: (processingState == ProcessingState.loading)?Container(
+                                  width: MediaQuery.of(context).size.width,
+                                  height: 60.0,
+                                  color: Colors.white.withOpacity(0.94),
+                                  child: Center(child: CircularProgressIndicator(),)
+                              ):Container(
+                                width: MediaQuery.of(context).size.width,
+                                height: 60.0,
+                                color: Colors.white.withOpacity(0.94),
+                                child: Row(
+                                  children: [
+                                    Expanded(
+                                      child: StreamBuilder<SequenceState?>(
+                                        stream: _audioPlayer.sequenceStateStream,
+                                        builder: (context, snapshot) {
+                                          final state = snapshot.data;
+                                          if (state?.sequence.isEmpty ?? true) {
+                                            return const SizedBox();
+                                          }
+                                          final metadata = state!.currentSource!.tag as MediaItem;
+                                          addSongToRecents(ref, int.parse(metadata.id));
+
+                                          return Row(
+                                            crossAxisAlignment: CrossAxisAlignment.center,
+                                            mainAxisAlignment: MainAxisAlignment.start,
+                                            children: [
+                                              Container(
+                                                margin: EdgeInsets.symmetric(horizontal: 5.0),
+                                                width: 40.0,
+                                                  height: 40.0,
+                                                  child: (metadata.artUri.toString() != '')
+                                                      ? Image.network(metadata.artUri.toString(), fit: BoxFit.fitHeight,)
+                                                      : Image.asset('assets/icons/music.png'),
+                                              ),
+                                              Expanded(
+                                                child: Column(
+                                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                                  mainAxisAlignment: MainAxisAlignment.center,
+                                                  children: [
+                                                    Text(metadata.title, style: Theme.of(context).textTheme.titleLarge, overflow: TextOverflow.ellipsis,),
+                                                    Text(metadata.album!, overflow: TextOverflow.ellipsis,),
+                                                  ],
+                                                ),
+                                              )
+
+                                            ],
+                                          );
+                                        },
+                                      ),
+                                    ),
+
+
+                                    LayoutBuilder(builder: (context, constraints) {
+                                      if (processingState == ProcessingState.loading || processingState == ProcessingState.buffering) {
+                                        return Container(
+                                          margin: const EdgeInsets.all(8.0),
+                                          width: 40.0,
+                                          height: 40.0,
+                                          child: const CircularProgressIndicator(),
+                                        );
+                                      } else if (playing != true) {
+                                        return IconButton(
+                                          icon: const Icon(Icons.play_arrow),
+                                          iconSize: 36.0,
+                                          onPressed: _audioPlayer.play,
+                                        );
+                                      } else if (processingState != ProcessingState.completed) {
+                                        return IconButton(
+                                          icon: const Icon(Icons.pause),
+                                          iconSize: 36.0,
+                                          onPressed: _audioPlayer.pause,
+                                        );
+                                      } else {
+                                        return IconButton(
+                                          icon: const Icon(Icons.replay),
+                                          iconSize: 36.0,
+                                          onPressed: () => _audioPlayer.seek(Duration.zero,
+                                              index: _audioPlayer.effectiveIndices!.first),
+                                        );
+                                      }
+                                    },),
+                                    IconButton(onPressed: () {
+                                      setState(() {
+                                        _audioPlayer.stop();
+                                        setState(() {
+                                          _isMiniPlayerVisible = false;
+                                        });
+                                      });
+                                    }, icon: Icon(Icons.close)),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          );
+
+                        /*return Container(
+                          width: MediaQuery.of(context).size.width,
+                          height: 60.0,
+                          color: Colors.white.withOpacity(0.99),
+                          child: Row(
+                            children: [
+                              Container(
+                                margin: EdgeInsets.only(left: 5.0),
+                                height: 40.0,
+                                width: 40.0,
+                                decoration: BoxDecoration(
+                                  image: DecorationImage(image: AssetImage('assets/icons/music.png')),
+                                ),
+                              ),
+                              Expanded(
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 4.0),
+                                    height: 40.0,
+                                    child: Column(
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(currentSong?.title?? 'This is the Song title', style: TextStyle(fontSize: 20.0, fontWeight: FontWeight.w700), overflow: TextOverflow.ellipsis,),
+                                        Text(currentSong?.publishedBy?? 'Singer Name'),
+                                      ],
+                                    ),
+                                  )
+                              ),
+                              IconButton(onPressed: () {}, icon: Icon(Icons.play_arrow)),
+                              IconButton(onPressed: () {
+                                setState(() {
+                                  currentSong = null;
+                                  _isMiniPlayerVisible = false;
+                                });
+                              }, icon: Icon(Icons.close)),
+                            ],
+                          ),
+                        );*/
+                      }
+                    ),
+                  )
+                ],
               ),
             ),
           );
@@ -1211,7 +1228,7 @@ class _HomePageState extends State<HomePage> {
                   ],
                 ),
                 SizedBox(
-                  height: 190.0,
+                  height: 180.0,
                   child: StreamBuilder<SequenceState?>(
                     stream: _audioPlayer.sequenceStateStream,
                     builder: (context, snapshot) {
@@ -1273,10 +1290,14 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  Future<void> addSongToRecents(WidgetRef ref, int id) async {
+    await API.addRecentSong(id: id);
+    ref.refresh(recently_played_Provider);
+  }
 
   @override
   void dispose() {
-    _audioPlayer.dispose();
+    _audioPlayer.stop();
     super.dispose();
   }
 
@@ -1287,6 +1308,26 @@ class _HomePageState extends State<HomePage> {
           _audioPlayer.durationStream,
               (position, bufferedPosition, duration) => PositionData(
               position, bufferedPosition, duration ?? Duration.zero));
+
+  Future<void> loadBanners() async {
+    Response? response = await API.getBanners();
+    if(response == null){
+
+    }else if(response.data['status'] == 'true'){
+      List<String> banners = [];
+      for(var item in response.data['user']){
+        banners.add(item['img']);
+      }
+      if(banners.isNotEmpty){
+        setState(() {
+          imagesList.clear();
+          imagesList = banners;
+          _networkBanner = true;
+        });
+      }
+    }
+  }
+
 }
 
 

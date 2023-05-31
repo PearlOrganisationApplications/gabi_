@@ -46,6 +46,7 @@ class API {
   static const String _delete_profile_url = '/user/delete-account';
   static const String _update_profile_url = '/user/updateprofile';
   static const String _customer_support_url = '/user/queries';
+  static const String _get_banners_url = '/user/banners';
 
   static Future<Response?> updateProfile({required String name, File? imageFile, required int profileStatus}) async {
     (_dio.httpClientAdapter as IOHttpClientAdapter).onHttpClientCreate =
@@ -277,6 +278,25 @@ class API {
         print(e.message);
         //print(e.request);
       }
+      return e.response;
+    }
+  }
+  static Future<Response?> getBanners() async {
+    try {
+
+      Options options = Options(
+        headers: {
+          'Authorization': 'Bearer ${AppPreferences.getToken()}',
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+        },
+      );
+      Response response = await _dio.get(_get_banners_url, options: options);
+      return response;
+    } on DioError catch (e) {
+      print(e.response?.statusCode);
+
+      print(e.toString());
       return e.response;
     }
   }
