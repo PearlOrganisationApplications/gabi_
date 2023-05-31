@@ -2,6 +2,7 @@
 import 'dart:io';
 
 import 'package:audio_service/audio_service.dart';
+import 'package:audio_video_progress_bar/audio_video_progress_bar.dart';
 import 'package:carousel_indicator/carousel_indicator.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/cupertino.dart';
@@ -19,11 +20,14 @@ import 'package:gabi/presentation/screens/livestream/livestream_options.dart';
 import 'package:gabi/utils/audioplayer/audioplayer_service.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:audio_session/audio_session.dart';
 
 import '../../../customwidgets/snackbar.dart';
 import '../../../riverpod/connectivity_status_notifier.dart';
 import '../../../utils/downloader/downloader.dart';
 import '../../../utils/systemuioverlay/full_screen.dart';
+import 'package:rxdart/rxdart.dart';
+
 
 
 class HomePage extends StatefulWidget {
@@ -31,12 +35,6 @@ class HomePage extends StatefulWidget {
 
   @override
   State<HomePage> createState() => _HomePageState();
-
-
-
-
-
-
 }
 
 
@@ -44,9 +42,21 @@ class _HomePageState extends State<HomePage> {
 
 
   AudioPlayer _audioPlayer = AudioPlayer();
+  final _playlist = ConcatenatingAudioSource(children: [
+    AudioSource.uri(
+      Uri.parse(
+          "https://s3.amazonaws.com/scifri-episodes/scifri20181123-episode.mp3"),
+      tag: MediaItem(
+        id: '1',
+        album: "Science Friday",
+        title: "A Salute To Head-Scratching Science",
+        artUri: Uri.parse(
+            "https://media.wnyc.org/i/1400/1400/l/80/1/ScienceFriday_WNYCStudios_1400.jpg"),
+      ),
+    ),
+  ]);
 
-
-
+  
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   DateTime? backButtonPressTime;
   final List<String> imagesList = [
@@ -59,7 +69,7 @@ class _HomePageState extends State<HomePage> {
   List<Map<String, dynamic>> recentsList = [];
   List<Map<String, dynamic>> allSongsList = [];
   SongModel? currentSong;
-  bool? _isMiniPlayerVisible;
+  bool _isMiniPlayerVisible = false;
 
 
 
@@ -113,6 +123,35 @@ class _HomePageState extends State<HomePage> {
     }
   }*/
 
+  Future<void> init() async {
+    final session = await AudioSession.instance;
+    await session.configure(const AudioSessionConfiguration.speech());
+    // Listen to errors during playback.
+    _audioPlayer.playbackEventStream.listen((event) {},
+        onError: (Object e, StackTrace stackTrace) {
+          print('A stream error occurred: $e');
+        });
+  }
+
+  Future<void> _startMusic() async {
+    try {
+      await _audioPlayer.setAudioSource(_playlist);
+      setState(() {
+        _isMiniPlayerVisible = true;
+      });
+      _audioPlayer.play();
+    } catch (e, stackTrace) {
+      // Catch load errors: 404, invalid url ...
+      print("Error loading playlist: $e");
+      print(stackTrace);
+    }
+  }
+
+  @override
+  void initState() {
+    init();
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -120,13 +159,11 @@ class _HomePageState extends State<HomePage> {
     YYDialog.init(context);
 
     FullScreen.setColor(navigationBarColor: Colors.white, statusBarColor: Colors.black);
-    print('Hii');
 
     return WillPopScope(
       onWillPop: () => handleWillPop(context),
       child: Consumer(
         builder: (context, ref, child) {
-          print('Hii1');
           return RefreshIndicator(
             onRefresh: ()async{
               await ref.refresh(recently_played_Provider);
@@ -296,7 +333,6 @@ class _HomePageState extends State<HomePage> {
                                   Consumer(
                                       builder: (context, ref, child) {
                                         var trendingDataProvider = ref.watch(trendingProvider);
-                                        print('Hii2');
                                         return Container(
                                           //color: Colors.red,
                                           alignment: Alignment.center,
@@ -386,45 +422,263 @@ class _HomePageState extends State<HomePage> {
                         ),
                       ),
                     ),
-                    if(currentSong != null && _isMiniPlayerVisible != null && _isMiniPlayerVisible == true) Align(
-                      alignment: Alignment.bottomLeft,
-                      child: Container(
-                        width: MediaQuery.of(context).size.width,
-                        height: 60.0,
-                        color: Colors.white.withOpacity(0.99),
-                        child: Row(
-                          children: [
-                            Container(
-                              margin: EdgeInsets.only(left: 5.0),
-                              height: 40.0,
-                              width: 40.0,
-                              decoration: BoxDecoration(
-                                image: DecorationImage(image: AssetImage('assets/icons/music.png')),
+                    /*StreamBuilder<PlayerState>(
+                      stream: _audioPlayer.playerStateStream,
+                      builder: (context, snapshot) {
+                        final playerState = snapshot.data;
+                        final processingState = playerState?.processingState;
+                        final playing = playerState?.playing;
+
+                        if(processingState == ProcessingState.loading){
+                          return Center(child: CircularProgressIndicator(),);
+                        }else if (processingState == ProcessingState.buffering) {
+                          return Align(
+                            alignment: Alignment.bottomLeft,
+                            child: Container(
+                              width: MediaQuery.of(context).size.width,
+                              height: 60.0,
+                              color: Colors.white.withOpacity(0.99),
+                              child: Row(
+                                children: [
+                                  Expanded(
+                                      child: StreamBuilder<SequenceState?>(
+                                        stream: _audioPlayer.sequenceStateStream,
+                                        builder: (context, snapshot) {
+                                          final state = snapshot.data;
+                                          if (state?.sequence.isEmpty ?? true) {
+                                            return const SizedBox();
+                                          }
+                                          final metadata = state!.currentSource!.tag as MediaItem;
+                                          return Row(
+                                            crossAxisAlignment: CrossAxisAlignment.center,
+                                            children: [
+                                              Padding(
+                                                padding: const EdgeInsets.all(8.0),
+                                                child: Center(
+                                                    child:
+                                                    Image.network(metadata.artUri.toString())),
+                                              ),
+                                              Column(
+                                                children: [
+                                                  Text(metadata.album!,
+                                                      style: Theme.of(context).textTheme.titleLarge),
+                                                  Text(metadata.title),
+                                                ],
+                                              )
+
+                                            ],
+                                          );
+                                        },
+                                      ),
+                                  ),
+                                  Container(
+                                    margin: EdgeInsets.only(left: 5.0),
+                                    height: 40.0,
+                                    width: 40.0,
+                                    decoration: BoxDecoration(
+                                      image: DecorationImage(image: AssetImage('assets/icons/music.png')),
+                                    ),
+                                  ),
+                                  Expanded(
+                                      child: Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 4.0),
+                                        height: 40.0,
+                                        child: Column(
+                                          mainAxisAlignment: MainAxisAlignment.center,
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            Text(currentSong?.title?? 'This is the Song title', style: TextStyle(fontSize: 20.0, fontWeight: FontWeight.w700), overflow: TextOverflow.ellipsis,),
+                                            Text(currentSong?.publishedBy?? 'Singer Name'),
+                                          ],
+                                        ),
+                                      )
+                                  ),
+                                  Container(
+                                    margin: const EdgeInsets.all(8.0),
+                                    width: 40.0,
+                                    height: 40.0,
+                                    child: const CircularProgressIndicator(),
+                                  ),
+                                  IconButton(onPressed: () {
+                                    setState(() {
+                                      currentSong = null;
+                                      _isMiniPlayerVisible = false;
+                                    });
+                                  }, icon: Icon(Icons.close)),
+                                ],
                               ),
                             ),
-                            Expanded(
-                                child: Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 4.0),
-                                  height: 40.0,
-                                  child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                          );
+                        } else if (playing != true) {
+                          return IconButton(
+                            icon: const Icon(Icons.play_arrow),
+                            iconSize: 64.0,
+                            onPressed: _audioPlayer.play,
+                          );
+                        } else if (processingState != ProcessingState.completed) {
+                          return IconButton(
+                            icon: const Icon(Icons.pause),
+                            iconSize: 64.0,
+                            onPressed: _audioPlayer.pause,
+                          );
+                        } else {
+                          return IconButton(
+                            icon: const Icon(Icons.replay),
+                            iconSize: 64.0,
+                            onPressed: () => _audioPlayer.seek(Duration.zero,
+                                index: _audioPlayer.effectiveIndices!.first),
+                          );
+                        }
+                      },
+                    ),*/
+
+                    if(_isMiniPlayerVisible)Align(
+                      alignment: Alignment.bottomLeft,
+                      child: StreamBuilder<PlayerState>(
+                          stream: _audioPlayer.playerStateStream,
+                          builder: (context, snapshot) {
+                            final playerState = snapshot.data;
+                            final processingState = playerState?.processingState;
+                            final playing = playerState?.playing;
+
+                            return InkWell(
+                              onTap: (){
+                                showBottomSheet();
+                              },
+                              child: Container(
+                                child: (processingState == ProcessingState.loading)?Container(
+                                    width: MediaQuery.of(context).size.width,
+                                    height: 60.0,
+                                    color: Colors.white.withOpacity(0.94),
+                                    child: Center(child: CircularProgressIndicator(),)
+                                ):Container(
+                                  width: MediaQuery.of(context).size.width,
+                                  height: 60.0,
+                                  color: Colors.white.withOpacity(0.94),
+                                  child: Row(
                                     children: [
-                                      Text(currentSong?.title?? 'This is the Song title', style: TextStyle(fontSize: 20.0, fontWeight: FontWeight.w700), overflow: TextOverflow.ellipsis,),
-                                      Text(currentSong?.publishedBy?? 'Singer Name'),
+                                      Expanded(
+                                        child: StreamBuilder<SequenceState?>(
+                                          stream: _audioPlayer.sequenceStateStream,
+                                          builder: (context, snapshot) {
+                                            final state = snapshot.data;
+                                            if (state?.sequence.isEmpty ?? true) {
+                                              return const SizedBox();
+                                            }
+                                            final metadata = state!.currentSource!.tag as MediaItem;
+                                            API.addRecentSong(id: int.parse(metadata.id));
+                                            return Row(
+                                              crossAxisAlignment: CrossAxisAlignment.center,
+                                              mainAxisAlignment: MainAxisAlignment.start,
+                                              children: [
+                                                Container(
+                                                  margin: EdgeInsets.symmetric(horizontal: 5.0),
+                                                  width: 40.0,
+                                                    height: 40.0,
+                                                    child: (metadata.artUri.toString() != '')
+                                                        ? Image.network(metadata.artUri.toString(), fit: BoxFit.fitHeight,)
+                                                        : Image.asset('assets/icons/music.png'),
+                                                ),
+                                                Expanded(
+                                                  child: Column(
+                                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                                    mainAxisAlignment: MainAxisAlignment.center,
+                                                    children: [
+                                                      Text(metadata.title, style: Theme.of(context).textTheme.titleLarge, overflow: TextOverflow.ellipsis,),
+                                                      Text(metadata.album!, overflow: TextOverflow.ellipsis,),
+                                                    ],
+                                                  ),
+                                                )
+
+                                              ],
+                                            );
+                                          },
+                                        ),
+                                      ),
+
+
+                                      LayoutBuilder(builder: (context, constraints) {
+                                        if (processingState == ProcessingState.loading || processingState == ProcessingState.buffering) {
+                                          return Container(
+                                            margin: const EdgeInsets.all(8.0),
+                                            width: 40.0,
+                                            height: 40.0,
+                                            child: const CircularProgressIndicator(),
+                                          );
+                                        } else if (playing != true) {
+                                          return IconButton(
+                                            icon: const Icon(Icons.play_arrow),
+                                            iconSize: 36.0,
+                                            onPressed: _audioPlayer.play,
+                                          );
+                                        } else if (processingState != ProcessingState.completed) {
+                                          return IconButton(
+                                            icon: const Icon(Icons.pause),
+                                            iconSize: 36.0,
+                                            onPressed: _audioPlayer.pause,
+                                          );
+                                        } else {
+                                          return IconButton(
+                                            icon: const Icon(Icons.replay),
+                                            iconSize: 36.0,
+                                            onPressed: () => _audioPlayer.seek(Duration.zero,
+                                                index: _audioPlayer.effectiveIndices!.first),
+                                          );
+                                        }
+                                      },),
+                                      IconButton(onPressed: () {
+                                        setState(() {
+                                          _audioPlayer.stop();
+                                          setState(() {
+                                            _isMiniPlayerVisible = false;
+                                          });
+                                        });
+                                      }, icon: Icon(Icons.close)),
                                     ],
                                   ),
-                                )
+                                ),
+                              ),
+                            );
+
+                          /*return Container(
+                            width: MediaQuery.of(context).size.width,
+                            height: 60.0,
+                            color: Colors.white.withOpacity(0.99),
+                            child: Row(
+                              children: [
+                                Container(
+                                  margin: EdgeInsets.only(left: 5.0),
+                                  height: 40.0,
+                                  width: 40.0,
+                                  decoration: BoxDecoration(
+                                    image: DecorationImage(image: AssetImage('assets/icons/music.png')),
+                                  ),
+                                ),
+                                Expanded(
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 4.0),
+                                      height: 40.0,
+                                      child: Column(
+                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Text(currentSong?.title?? 'This is the Song title', style: TextStyle(fontSize: 20.0, fontWeight: FontWeight.w700), overflow: TextOverflow.ellipsis,),
+                                          Text(currentSong?.publishedBy?? 'Singer Name'),
+                                        ],
+                                      ),
+                                    )
+                                ),
+                                IconButton(onPressed: () {}, icon: Icon(Icons.play_arrow)),
+                                IconButton(onPressed: () {
+                                  setState(() {
+                                    currentSong = null;
+                                    _isMiniPlayerVisible = false;
+                                  });
+                                }, icon: Icon(Icons.close)),
+                              ],
                             ),
-                            IconButton(onPressed: () {}, icon: Icon(Icons.play_arrow)),
-                            IconButton(onPressed: () {
-                              setState(() {
-                                currentSong = null;
-                                _isMiniPlayerVisible = false;
-                              });
-                            }, icon: Icon(Icons.close)),
-                          ],
-                        ),
+                          );*/
+                        }
                       ),
                     )
                   ],
@@ -437,30 +691,13 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Widget showTrendingList() {
-    return ListView.builder(
-        shrinkWrap: true,
-        scrollDirection: Axis.horizontal,
-        itemCount: 5,
-        itemBuilder: (context, index) {
-          return _songsCardWidget(
-            context: context,
-            title: trendingList[index]['title'],
-            imageUrl: trendingList[index]['img'],
-            songUrl: trendingList[index]['url']??'',
-            songDuration: trendingList[index]['duration'] ?? '0:00',
-            publishedBy: trendingList[index]['published_by'],
-            songId: trendingList[index]['id'],
-          );
-        });
-  }
   Widget showRecentsList() {
     return ListView.builder(
         shrinkWrap: true,
         scrollDirection: Axis.horizontal,
         itemCount: recentsList.length,
         itemBuilder: (context, index) {
-          return _songsCardWidget(
+          return _recentSongsCardWidget(
             context: context,
             title: recentsList[index]['title'],
             imageUrl: recentsList[index]['img'],
@@ -468,6 +705,24 @@ class _HomePageState extends State<HomePage> {
             songDuration: recentsList[index]['duration'] ?? '0:00',
             publishedBy: recentsList[index]['published_by'],
             songId: recentsList[index]['id'],
+          );
+        });
+  }
+  Widget showTrendingList() {
+    return ListView.builder(
+        shrinkWrap: true,
+        scrollDirection: Axis.horizontal,
+        itemCount: 5,
+        itemBuilder: (context, index) {
+          return _trendingSongsCardWidget(
+            context: context,
+            listIndex: index,
+            title: trendingList[index]['title'],
+            imageUrl: trendingList[index]['img'],
+            songUrl: trendingList[index]['url']??'',
+            songDuration: trendingList[index]['duration'] ?? '0:00',
+            publishedBy: trendingList[index]['published_by'],
+            songId: trendingList[index]['id'],
           );
         });
   }
@@ -480,6 +735,7 @@ class _HomePageState extends State<HomePage> {
         itemBuilder: (context, index) {
           return _allSongsCardWidget(
             context: context,
+            listIndex: index,
             title: allSongsList[index]['title'],
             imageUrl: allSongsList[index]['img'],
             songUrl: allSongsList[index]['url'] ?? '',
@@ -491,7 +747,7 @@ class _HomePageState extends State<HomePage> {
         });
   }
 
-  Widget _songsCardWidget({required BuildContext context, required String title,required String imageUrl,required String songUrl,required String songDuration, required publishedBy, required int songId}) {
+  Widget _recentSongsCardWidget({required BuildContext context, required String title,required String imageUrl,required String songUrl,required String songDuration, required publishedBy, required int songId}) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 16.0),
       child: Card(
@@ -501,15 +757,21 @@ class _HomePageState extends State<HomePage> {
         ),
         child: InkWell(
           onTap: () {
-            setState(() {
-              currentSong = SongModel(title, imageUrl, songUrl, songDuration, publishedBy, songId);
-            });
+            if (_playlist.children.isNotEmpty) {
+              _playlist.children.clear();
+            }
+            final source = AudioSource.uri(
+              Uri.parse(songUrl),
+              tag: MediaItem(
+                id: songId.toString(),
+                album: publishedBy,
+                title: title,
+                artUri: Uri.parse(imageUrl),
+              ),
+            );
+            _playlist.children.add(source);
+            _startMusic();
             showBottomSheet();
-            /*showDialog(
-              barrierDismissible: false,
-              context: context,
-              builder: (context) =>
-                  MusicPlayerDialog(songUrl: songUrl, title: title, imageUrl: imageUrl),);*/
           },
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -590,8 +852,122 @@ class _HomePageState extends State<HomePage> {
       ),
     );
   }
+  Widget _trendingSongsCardWidget({required BuildContext context, required int listIndex, required String title,required String imageUrl,required String songUrl,required String songDuration, required publishedBy, required int songId}) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16.0),
+      child: Card(
+        elevation: 30.0,
+        shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8.0)
+        ),
+        child: InkWell(
+          onTap: () {
+            if (_playlist.children.isNotEmpty) {
+              _playlist.children.clear();
+            }
+            int _count = 0;
+            for (var songData in trendingList) {
+              final source = AudioSource.uri(
+                Uri.parse(songData['url']),
+                tag: MediaItem(
+                  id: songData['id'].toString(),
+                  album: songData['published_by'],
+                  title: songData['title'],
+                  artUri: Uri.parse(songData['img']),
+                ),
+              );
+              if(_count == listIndex){
+                _playlist.children.insert(0, source);
+                //_playlist.children.add(source);
 
-  Widget _allSongsCardWidget({required BuildContext context, required String title,required String imageUrl,required String songUrl,required String songDuration, required publishedBy, required int songId}) {
+              }else {
+                _playlist.children.add(source);
+              }
+              _count += 1;
+            }
+            _startMusic();
+            showBottomSheet();
+          },
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Expanded(
+                child: Stack(
+                  children: [
+                    AspectRatio(
+                      aspectRatio: 8/6,
+                      child: Container(
+                        decoration: BoxDecoration(
+                          image: DecorationImage(
+                            image: NetworkImage(imageUrl),
+                            fit: BoxFit.cover,
+                          ),
+                          borderRadius: BorderRadius.vertical(top: Radius.circular(8.0)),
+                        ),
+                      ),
+                    ),
+                    Positioned(
+                      bottom: 8,
+                      left: 8,
+                      child: Container(
+                        padding: EdgeInsets.symmetric(vertical: 4.0, horizontal: 8.0),
+                        decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.all(Radius.circular(4.0))
+                        ),
+                        child: Text(songDuration, style: TextStyle(fontWeight: FontWeight.w500),),
+                      ),
+                    ),
+                    Positioned(
+                      bottom: 0,
+                      right: 8,
+                      child: Container(
+                        alignment: Alignment.center,
+                        width: 32.0,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: Colors.green,
+                        ),
+                        child: IconButton(
+                          onPressed: () async {
+                            EasyLoading.show(status: 'Preparing file to download');
+                            await Download.requestDownload(songUrl, '${title}.mp3');
+                            EasyLoading.dismiss();
+                          },
+                          icon: const Icon(
+                            Icons.download,
+                            color: Colors.white,
+                            size: 16.0,
+                          ),
+                        ),
+                      ),
+                    )
+                  ],
+                ),
+              ),
+              LimitedBox(
+                maxWidth: MediaQuery.of(context).size.width * 0.5,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 4.0, horizontal: 8.0),
+                  child: Text(
+                    title,
+                    style: TextStyle(
+                        fontSize: 18.0,
+                        color: Colors.black,
+                        fontWeight: FontWeight.w600,
+                        overflow: TextOverflow.ellipsis
+                    ),
+                  ),
+                ),
+              )
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+  Widget _allSongsCardWidget({required BuildContext context, required int listIndex, required String title,required String imageUrl,required String songUrl,required String songDuration, required publishedBy, required int songId}) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 16.0),
       child: AspectRatio(
@@ -606,15 +982,29 @@ class _HomePageState extends State<HomePage> {
             ),
             child: InkWell(
               onTap: () {
-                setState(() {
-                  currentSong = SongModel(title, imageUrl, songUrl, songDuration, publishedBy, songId);
-                });
+                if (_playlist.children.isNotEmpty) {
+                  _playlist.children.clear();
+                }
+                int _count = 0;
+                for (var songData in allSongsList) {
+                  final source = AudioSource.uri(
+                    Uri.parse(songData['url']),
+                    tag: MediaItem(
+                      id: songData['id'].toString(),
+                      album: songData['published_by'],
+                      title: songData['title'],
+                      artUri: Uri.parse(songData['img']),
+                    ),
+                  );
+                  if(_count == listIndex){
+                    _playlist.children.insert(0, source);
+                  }else {
+                    _playlist.children.add(source);
+                  }
+                  _count += 1;
+                }
+                _startMusic();
                 showBottomSheet();
-                /*showDialog(
-                  barrierDismissible: false,
-                  context: context,
-                  builder: (context) =>
-                      MusicPlayerDialog(songUrl: songUrl, title: title, imageUrl: imageUrl),);*/
               },
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -699,51 +1089,204 @@ class _HomePageState extends State<HomePage> {
   }
 
 
+
   void showBottomSheet() {
     showModalBottomSheet(
       context: context,
       useSafeArea: true,
       isDismissible: false,
+      isScrollControlled: false,
       //enableDrag: false,
       builder: (context) {
 
-        /*return Container(
-          height: MediaQuery.of(context).size.height * 0.8,
-          child: Center(
-            child: StreamBuilder(
-              stream: AudioPlayerService.playingState(),
-              builder: (context, snapshot) {
-                return Text(snapshot.data.toString());
-              },
+        return Container(
+          width: MediaQuery.of(context).size.height,
+          child: SafeArea(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: [
+                Container(
+                  color: Colors.grey.shade100,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Container(
+                          margin: EdgeInsets.only(left: 4.0,),
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            //color: Colors.black.withOpacity(0.6),
+                          ),
+                          child: IconButton(
+                            onPressed: (){Navigator.pop(context);},
+                            icon: Icon(Icons.keyboard_arrow_down, size: 40.0,),
+                            color: Colors.black,)),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 6.0, horizontal: 4.0),
+                        child: Container(
+                          padding: const EdgeInsets.all(1.0),
+                          decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.all(Radius.circular(4.0))
+                          ),
+                          child: Container(
+                            height: 34,
+                              width: 40,
+                              padding: const EdgeInsets.all(3.0),
+                              decoration: BoxDecoration(
+                                color: Colors.black,
+                                borderRadius: BorderRadius.all(Radius.circular(4.0)),
+                              ),
+                              child: Image.asset('assets/icons/everywhere_icon.png',)),
+                        ),
+                      ),
+
+                    ],
+                  ),
+                ),
+                Container(
+                  color: Colors.grey.shade100,
+                  width: MediaQuery.of(context).size.width,
+                  height: MediaQuery.of(context).size.width,
+                  child: Container(
+                    width: MediaQuery.of(context).size.width,
+                    child: StreamBuilder<SequenceState?>(
+                      stream: _audioPlayer.sequenceStateStream,
+                      builder: (context, snapshot) {
+                        final state = snapshot.data;
+                        if (state?.sequence.isEmpty ?? true) {
+                          return const SizedBox();
+                        }
+                        final metadata = state!.currentSource!.tag as MediaItem;
+                        return Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          mainAxisSize: MainAxisSize.max,
+                          children: [
+                            Container(
+                              width: MediaQuery.of(context).size.width * 0.7,
+                              height: MediaQuery.of(context).size.width * 0.7,
+                              child: (metadata.artUri.toString() != '')
+                                  ? Image.network(metadata.artUri.toString(), fit: BoxFit.fitHeight)
+                                  : Image.asset('assets/icons/music.png'),
+                            ),
+                            Text(metadata.album!,
+                                style: Theme.of(context).textTheme.titleLarge),
+                            Text(metadata.title),
+                          ],
+                        );
+                      },
+                    ),
+                  ),
+                ),
+                ControlButtons(_audioPlayer),
+                StreamBuilder<PositionData>(
+                  stream: _positionDataStream,
+                  builder: (context, snapshot) {
+                    final positionData = snapshot.data;
+                    return Container(
+                      margin: EdgeInsets.symmetric(horizontal: 24.0),
+                      child: ProgressBar(
+                        total: positionData?.duration ?? Duration.zero,
+                        progress: positionData?.position ?? Duration.zero,
+                        buffered: positionData?.bufferedPosition ?? Duration.zero,
+                        onSeek: (newPosition) {
+                          _audioPlayer.seek(newPosition);
+                        },
+                      ),
+                    );
+                  },
+                ),
+                const SizedBox(height: 8.0),
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        "Playlist",
+                        style: Theme.of(context).textTheme.titleLarge,
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(
+                  height: 190.0,
+                  child: StreamBuilder<SequenceState?>(
+                    stream: _audioPlayer.sequenceStateStream,
+                    builder: (context, snapshot) {
+                      final state = snapshot.data;
+                      final sequence = state?.sequence ?? [];
+                      return Container(
+                        padding: EdgeInsets.symmetric(horizontal: 8.0),
+                        child: ReorderableListView(
+                          onReorder: (int oldIndex, int newIndex) {
+                            if (oldIndex < newIndex) newIndex--;
+                            _playlist.move(oldIndex, newIndex);
+                          },
+                          children: [
+                            for (var i = 0; i < sequence.length; i++)
+                              Dismissible(
+                                key: ValueKey(sequence[i]),
+                                background: Container(
+                                  color: Colors.redAccent,
+                                  alignment: Alignment.centerRight,
+                                  child: const Padding(
+                                    padding: EdgeInsets.only(right: 8.0),
+                                    child: Icon(Icons.delete, color: Colors.white),
+                                  ),
+                                ),
+                                onDismissed: (dismissDirection) {
+                                  _playlist.removeAt(i);
+                                },
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                    border: (i == sequence.length -1)
+                                        ? null
+                                        : Border(bottom: BorderSide(color: Colors.grey.shade300, width: 1.0)),
+                                  ),
+                                  child: Material(
+                                    /*color: i == state!.currentIndex
+                                        ? Colors.grey.shade300
+                                        : null,*/
+                                    child: ListTile(
+                                      title: Text(sequence[i].tag.title as String),
+                                      trailing: i == state!.currentIndex?Icon(Icons.music_note) : null,
+                                      onTap: () {
+                                        _audioPlayer.seek(Duration.zero, index: i);
+                                      },
+                                    ),
+                                  ),
+                                ),
+                              ),
+                          ],
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ],
             ),
           ),
-        );*/
-        return Consumer(
-          builder: (context, ref, child) {
-            return MusicPlayerDialog(
-                songUrl: currentSong!.songUrl,
-                title: currentSong!.title,
-                imageUrl: currentSong!.imageUrl,
-                onKeyDown: (value) {
-                  if(value == true){
-                    setState(() {
-                      _isMiniPlayerVisible = true;
-                    });
-                  }
-                },
-              onPlayStart: (value) async {
-                  if(value == true){
-                    await API.addRecentSong(id: currentSong!.id);
-                    await ref.refresh(recently_played_Provider);
-                  }
-              }
-
-            );
-          }
         );
       },
     );
   }
+
+
+  @override
+  void dispose() {
+    _audioPlayer.dispose();
+    super.dispose();
+  }
+
+  Stream<PositionData> get _positionDataStream =>
+      Rx.combineLatest3<Duration, Duration, Duration?, PositionData>(
+          _audioPlayer.positionStream,
+          _audioPlayer.bufferedPositionStream,
+          _audioPlayer.durationStream,
+              (position, bufferedPosition, duration) => PositionData(
+              position, bufferedPosition, duration ?? Duration.zero));
 }
 
 
@@ -771,4 +1314,151 @@ class SongModel {
   String get title => _title;
 }
 
+class PositionData {
+  Duration _position;
+  Duration _bufferedPosition;
+  Duration _duration;
+
+  PositionData(this._position, this._bufferedPosition, this._duration);
+
+  Duration get duration => _duration;
+
+  Duration get bufferedPosition => _bufferedPosition;
+
+  Duration get position => _position;
+}
+
+class ControlButtons extends StatelessWidget {
+  final AudioPlayer player;
+
+  const ControlButtons(this.player, {Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        /*IconButton(
+          icon: const Icon(Icons.volume_up),
+          onPressed: () {
+            showSliderDialog(
+              context: context,
+              title: "Adjust volume",
+              divisions: 10,
+              min: 0.0,
+              max: 1.0,
+              stream: player.volumeStream,
+              onChanged: player.setVolume,
+            );
+          },
+        ),*/
+        Spacer(flex: 2,),
+        StreamBuilder<LoopMode>(
+          stream: player.loopModeStream,
+          builder: (context, snapshot) {
+            final loopMode = snapshot.data ?? LoopMode.off;
+            const icons = [
+              Icon(Icons.repeat, color: Colors.grey),
+              Icon(Icons.repeat, color: Colors.orange),
+              Icon(Icons.repeat_one, color: Colors.orange),
+            ];
+            const cycleModes = [
+              LoopMode.off,
+              LoopMode.all,
+              LoopMode.one,
+            ];
+            final index = cycleModes.indexOf(loopMode);
+            return IconButton(
+              icon: icons[index],
+              onPressed: () {
+                player.setLoopMode(cycleModes[
+                (cycleModes.indexOf(loopMode) + 1) %
+                    cycleModes.length]);
+              },
+            );
+          },
+        ),
+        Spacer(flex: 1,),
+
+        StreamBuilder<SequenceState?>(
+          stream: player.sequenceStateStream,
+          builder: (context, snapshot) => IconButton(
+            icon: const Icon(Icons.skip_previous),
+            onPressed: player.hasPrevious ? player.seekToPrevious : null,
+          ),
+        ),
+        Card(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.all(Radius.circular(40.0)),
+          ),
+          child: StreamBuilder<PlayerState>(
+            stream: player.playerStateStream,
+            builder: (context, snapshot) {
+              final playerState = snapshot.data;
+              final processingState = playerState?.processingState;
+              final playing = playerState?.playing;
+
+              if (processingState == ProcessingState.loading || processingState == ProcessingState.buffering) {
+                return Center(
+                  child: Container(
+                    margin: const EdgeInsets.all(8.0),
+                    width: 48.0,
+                    height: 48.0,
+                    child: const CircularProgressIndicator(),
+                  ),
+                );
+              } else if (playing != true) {
+                return IconButton(
+                  icon: const Icon(Icons.play_arrow),
+                  iconSize: 40.0,
+                  onPressed: player.play,
+                );
+              } else if (processingState != ProcessingState.completed) {
+                return IconButton(
+                  icon: const Icon(Icons.pause),
+                  iconSize: 40.0,
+                  onPressed: player.pause,
+                );
+              } else {
+                return IconButton(
+                  icon: const Icon(Icons.replay),
+                  iconSize: 40.0,
+                  onPressed: () => player.seek(Duration.zero,
+                      index: player.effectiveIndices!.first),
+                );
+              }
+            },
+          ),
+        ),
+        StreamBuilder<SequenceState?>(
+          stream: player.sequenceStateStream,
+          builder: (context, snapshot) => IconButton(
+            icon: const Icon(Icons.skip_next),
+            onPressed: player.hasNext ? player.seekToNext : null,
+          ),
+        ),
+        Spacer(flex: 1,),
+        StreamBuilder<bool>(
+          stream: player.shuffleModeEnabledStream,
+          builder: (context, snapshot) {
+            final shuffleModeEnabled = snapshot.data ?? false;
+            return IconButton(
+              icon: shuffleModeEnabled
+                  ? const Icon(Icons.shuffle, color: Colors.orange)
+                  : const Icon(Icons.shuffle, color: Colors.grey),
+              onPressed: () async {
+                final enable = !shuffleModeEnabled;
+                if (enable) {
+                  await player.shuffle();
+                }
+                await player.setShuffleModeEnabled(enable);
+              },
+            );
+          },
+        ),
+        Spacer(flex: 2,),
+      ],
+    );
+  }
+}
 
