@@ -20,7 +20,6 @@ import '../../../app/models/comment_model.dart';
 import '../../../utils/streamconfigs/appId.dart';
 import '../../../utils/systemuioverlay/full_screen.dart';
 import '../homescreen/widgets/custom_dialogs.dart';
-import 'messaging.dart';
 
 class Broadcaster extends StatefulWidget {
   final ChannelDataModel channelData;
@@ -714,15 +713,6 @@ class _BroadcasterState extends State<Broadcaster> {
     _engine.switchCamera();
   }
 
-  void _goToChatPage() {
-    Navigator.of(context).push(
-        MaterialPageRoute(builder: (context) => RealTimeMessaging(channelName: widget.channelData.channelName, userName: AppPreferences.getDisplayName(),
-            isBroadcaster: true,
-          ),)
-    );
-  }
-
-
 
   void _createRtmClient() async {
     _rtmClient = await AgoraRtmClient.createInstance(appId);
@@ -831,6 +821,14 @@ class _BroadcasterState extends State<Broadcaster> {
   _scrollToEnd() async {
     _scrollController.animateTo(
       _scrollController.position.maxScrollExtent, duration: Duration(milliseconds: 10), curve: Curves.linear, );
+  }
+
+  @override
+  void dispose() {
+    if(EasyLoading.isShow){
+      EasyLoading.dismiss();
+    }
+    super.dispose();
   }
 
 }

@@ -6,15 +6,11 @@ import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:gabi/app/api/app_api.dart';
 import 'package:gabi/app/models/channel_model.dart';
 import 'package:gabi/main.dart';
-import 'package:gabi/presentation/screens/livesreaming/widgets/custom_comments_listtile.dart';
-import 'package:gabi/presentation/screens/livesreaming/widgets/custom_viewers_listtile.dart';
 import 'package:gabi/presentation/screens/livestream/audience.dart';
 import 'package:gabi/utils/systemuioverlay/full_screen.dart';
 import 'package:lottie/lottie.dart';
 
 import '../../../widgets/nospace_formatter.dart';
-import '../../livesreaming/joinstream/join_stream.dart';
-import '../../livesreaming/createstream/create_stream.dart';
 import '../../livestream/broadcaster.dart';
 
 class CustomDialogs {
@@ -104,6 +100,7 @@ class CustomDialogs {
   }
 
 
+/*
   static YYDialog viewersDialogBox({required BuildContext context, required List<String> profileUrlList, required List<String> userNameList}) {
     YYDialog dialog = YYDialog().build();
     dialog.width = MediaQuery.of(context).size.width * 0.7;
@@ -191,6 +188,7 @@ class CustomDialogs {
     dialog.show();
     return dialog;
   }
+*/
 
 
   static YYDialog liveStreamFinishedDialogBox({required Function() onTap}) {

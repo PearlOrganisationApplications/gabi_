@@ -199,20 +199,23 @@ class _LoginPageState extends State<LoginPage> {
                                             scopes: ['email', 'profile', 'openid',],
                                             clientId: "807297048318-jt0sl02b33qr502a47lfgqnfhpbd021o.apps.googleusercontent.com",
                                           ).signIn();
-
+                                          print('Email: ${googleUser!.email}');
                                           if (googleUser != null) {
-                                            final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
+                                            //final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
                                             //print('idToken : ${googleAuth.idToken}');
                                             //EasyLoading.show(status: googleUser.displayName, dismissOnTap: true);
-                                            setState(() {
-                                              con.text = googleAuth?.idToken ?? '';
-                                            });
+                                            // setState(() {
+                                            //   con.text = googleAuth?.idToken ?? '';
+                                            // });
+
+                                            print('Email: ${googleUser.id}\nToken: ${googleUser.displayName}');
 
                                             EasyLoading.show();
                                             final Response? response = await API.login(
                                                 email: googleUser.email,
-                                                clientToken: googleAuth.idToken?? '',
-                                                type: 'google'
+                                                clientToken: googleUser.id.toString(),
+                                                type: 'google',
+                                                name: googleUser.displayName,
                                             );
                                             EasyLoading.dismiss();
                                             loginResponse(response: response);
@@ -259,8 +262,9 @@ class _LoginPageState extends State<LoginPage> {
                                         if(result == CredentialState.authorized){
                                           EasyLoading.show();
                                           final Response? response = await API.login(
-                                              email: credential.email?? '',
-                                              appleId: credential.userIdentifier?? '',
+                                              //email: credential.email?? '',
+                                              email: '${credential.userIdentifier}@apple.com',
+                                              appleId: '${credential.userIdentifier}@apple.com',
                                               name: '${credential.givenName} ${credential.familyName}'?? '',
                                               type: 'apple'
                                           );
@@ -344,6 +348,7 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   void loginResponse({Response? response}) {
+    print(response.toString());
     if (response == null) {
       ShowSnackBar().showSnackBar(context,
           'No Response from Server',
@@ -369,6 +374,13 @@ class _LoginPageState extends State<LoginPage> {
     }
   }
 
+  @override
+  void dispose() {
+    if(EasyLoading.isShow){
+      EasyLoading.dismiss();
+    }
+    super.dispose();
+  }
 }
 
 

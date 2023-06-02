@@ -18,8 +18,8 @@ import '../../widgets/custom_textformfield.dart';
 import '../../widgets/nospace_formatter.dart';
 
 class ResetPasswordScreen extends StatefulWidget {
-  final bool? newPassword;
-  const ResetPasswordScreen({Key? key, this.newPassword}) : super(key: key);
+  final bool newPassword;
+  const ResetPasswordScreen({Key? key, required this.newPassword}) : super(key: key);
 
   @override
   State<ResetPasswordScreen> createState() => _ResetPasswordScreenState();
@@ -346,5 +346,13 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
         ),
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    if(EasyLoading.isShow){
+      EasyLoading.dismiss();
+    }
+    super.dispose();
   }
 }

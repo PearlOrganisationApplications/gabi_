@@ -173,4 +173,12 @@ class _EnquiyformScreenState extends State<EnquiyformScreen> {
       ),
     );
   }
+
+  @override
+  void dispose() {
+    if(EasyLoading.isShow){
+      EasyLoading.dismiss();
+    }
+    super.dispose();
+  }
 }

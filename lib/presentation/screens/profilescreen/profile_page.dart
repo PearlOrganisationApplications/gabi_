@@ -152,14 +152,14 @@ class _ProfilePageState extends State<ProfilePage> {
 
     if(response == null){
       EasyLoading.showToast('Server Unavailable');
-    }else if(response.data['status']== true){
+    }else if(response.data['status']== "true"){
       phone_controller.text = response.data['user']['phone']??'Add Phone Number';
       country_controller.text = response.data['user']['country']??'Add country';
       gender_controller.text = response.data['user']['gender']??'Select Gender';
       email_controller.text = response.data['user']['email']??'No Email Found';
       displayName_controller.text = response.data['user']['name']??'Name not available';
       userProfile = response.data['user']['user_profile']??'';
-    }else if(response.data['status'] == false){
+    }else if(response.data['status'] == "false"){
       phone_controller.text = 'Add Phone Number';
       country_controller.text = 'Add country';
       gender_controller.text = 'Select Gender';
@@ -343,6 +343,7 @@ class _ProfilePageState extends State<ProfilePage> {
                               textAlign: TextAlign.center,
                               controller: displayName_controller,
                               enabled: isEnabled,
+                              textCapitalization: TextCapitalization.words,
                               keyboardType: TextInputType.text,
                               textInputAction: TextInputAction.next,
                               autofocus: true,
@@ -458,15 +459,15 @@ class _ProfilePageState extends State<ProfilePage> {
                                 child: MaterialButton(
                                     onPressed: () async {
                                       if (isEnabled) {
-                                        setState(() {
-                                          isEnabled = false;
-                                        });
                                         EasyLoading.show();
                                         Response? response = await API.updateProfile(name: displayName_controller.text, profileStatus: (pickedImage == null)? 0 : 1, imageFile: pickedImage);
                                         EasyLoading.dismiss();
                                         if(response == null){
                                           EasyLoading.showToast('Unable to communicate to server');
                                         }else if(response.data['status'] == 'true'){
+                                          setState(() {
+                                            isEnabled = false;
+                                          });
                                           EasyLoading.showToast('Profile updated successfully!');
                                         }else if(response.data['status'] == 'false'){
                                           EasyLoading.showToast('Unauthorised access!');
@@ -491,7 +492,7 @@ class _ProfilePageState extends State<ProfilePage> {
                     Container(
                       margin: EdgeInsets.symmetric(horizontal: 8.0),
                       child: MaterialButton(onPressed: () {
-
+                        Navigator.push(context, MaterialPageRoute(builder: (context) => ResetPasswordScreen(newPassword: true),));
                       },
                       child: Container(height: 40,alignment: Alignment.center,width: double.infinity, child: Text('Change Password')),
                         color: Colors.white,
@@ -525,6 +526,14 @@ class _ProfilePageState extends State<ProfilePage> {
         )
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    if(EasyLoading.isShow){
+      EasyLoading.dismiss();
+    }
+    super.dispose();
   }
 }
 

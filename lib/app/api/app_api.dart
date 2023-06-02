@@ -79,11 +79,14 @@ class API {
       );
       Response response = await _dio.post(_update_profile_url, data: formData, options: options);
       print(response.toString());
-      if(response.data['status' == 'true']){
-        Response response2 = await _dio.post(_get_profile_url, data: formData, options: options);
+      if(response.data['status'] == 'true'){
+        print('zzzz');
+
+        Response response2 = await _dio.get(_get_profile_url, options: options);
+        print(response2);
         if(response2.data['status'] == 'true'){
-          print('Poiuytrewq');
-          await _saveUserData(response);
+
+          await _saveUserData(response2);
         }
       }
       return response;
@@ -562,9 +565,9 @@ class API {
 
     print(response.toString());
     AppPreferences.saveCredentials(
-      token: response.data['token'],
-      email: response.data['user']['email'],
-      name: response.data['user']['name'],
+      token: response.data['token']??AppPreferences.getToken(),
+      email: response.data['user']['email']??AppPreferences.getEmailAddress(),
+      name: response.data['user']['name']?? AppPreferences.getDisplayName(),
       photoUrl: response.data['user']['user_profile'] ?? '',
     );
     /*if(response.data['user']['user_profile'] != null || response.data['user']['user_profile'] != '') {

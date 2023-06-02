@@ -589,4 +589,12 @@ class _SignUpScreenState extends State<SignUpScreen> {
       ),
     );
   }
+
+  @override
+  void dispose() {
+    if(EasyLoading.isShow){
+      EasyLoading.dismiss();
+    }
+    super.dispose();
+  }
 }

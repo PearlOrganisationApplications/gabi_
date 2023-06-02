@@ -17,7 +17,6 @@ import '../../../app/api/app_api.dart';
 import '../../../app/models/comment_model.dart';
 import '../../../utils/streamconfigs/appId.dart';
 import '../../../utils/systemuioverlay/full_screen.dart';
-import 'messaging.dart';
 
 class Audience extends StatefulWidget {
   final ChannelDataModel channelData;
@@ -343,16 +342,6 @@ class _AudienceState extends State<Audience> {
     _engine.muteRemoteAudioStream(mute: muted, uid: _remoteUid!);
   }
 
-  void _goToChatPage() {
-    Navigator.of(context).push(
-        MaterialPageRoute(
-          builder: (context) => RealTimeMessaging(
-            channelName: widget.channelData.channelName,
-            userName: AppPreferences.getDisplayName(),
-            isBroadcaster: false,
-          ),)
-    );
-  }
 
   Widget _viewersBox() {
     return BlurryContainer(
@@ -754,4 +743,12 @@ class _AudienceState extends State<Audience> {
     return channel;
   }
 
+
+  @override
+  void dispose() {
+    if(EasyLoading.isShow){
+      EasyLoading.dismiss();
+    }
+    super.dispose();
+  }
 }

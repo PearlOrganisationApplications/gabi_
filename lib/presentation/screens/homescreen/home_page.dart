@@ -1,6 +1,4 @@
 
-import 'dart:io';
-
 import 'package:audio_service/audio_service.dart';
 import 'package:audio_video_progress_bar/audio_video_progress_bar.dart';
 import 'package:carousel_indicator/carousel_indicator.dart';
@@ -12,15 +10,10 @@ import 'package:flutter_custom_dialog/flutter_custom_dialog.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gabi/app/api/app_api.dart';
-import 'package:gabi/app/preferences/app_preferences.dart';
-import 'package:gabi/customwidgets/audio_player.dart';
 import 'package:gabi/presentation/screens/homescreen/widgets/custom_dialogs.dart';
 import 'package:gabi/presentation/widgets/live_button.dart';
 import 'package:gabi/presentation/screens/homescreen/widgets/mydrawer.dart';
-import 'package:gabi/presentation/screens/livestream/livestream_options.dart';
-import 'package:gabi/utils/audioplayer/audioplayer_service.dart';
 import 'package:just_audio/just_audio.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:audio_session/audio_session.dart';
 
 import '../../../customwidgets/snackbar.dart';
@@ -71,6 +64,7 @@ class _HomePageState extends State<HomePage> {
   List<Map<String, dynamic>> allSongsList = [];
   SongModel? currentSong;
   bool _isMiniPlayerVisible = false;
+  late BuildContext _buildContext;
 
 
 
@@ -161,8 +155,8 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     //checkImageExists();
+    _buildContext = context;
     YYDialog.init(context);
-
     FullScreen.setColor(navigationBarColor: Colors.white, statusBarColor: Colors.black);
 
     return WillPopScope(
@@ -403,7 +397,6 @@ class _HomePageState extends State<HomePage> {
                                   builder: (context, ref, child) {
                                     var allSongsDataProvider = ref.watch(all_songs_Provider);
                                     var connectivityStatusProvider = ref.watch(connectivityStatusProviders);
-                                    print('Hii3');
                                     return Container(
                                       alignment: Alignment.center,
                                       width: MediaQuery.of(context).size.width,
@@ -1110,17 +1103,15 @@ class _HomePageState extends State<HomePage> {
   void showBottomSheet() {
     showModalBottomSheet(
       context: context,
-      useSafeArea: true,
-      isDismissible: false,
-      isScrollControlled: false,
+      isScrollControlled: true,
       //enableDrag: false,
       builder: (context) {
 
+        //print('${MediaQuery.of(context).padding.top}');
         return Container(
-          width: MediaQuery.of(context).size.height,
-          child: SafeArea(
+          height: MediaQuery.of(context).size.height- MediaQuery.paddingOf(_buildContext).top,
+          child: SingleChildScrollView(
             child: Column(
-              mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.center,
               mainAxisAlignment: MainAxisAlignment.start,
               children: [
@@ -1298,6 +1289,9 @@ class _HomePageState extends State<HomePage> {
   @override
   void dispose() {
     _audioPlayer.stop();
+    if(EasyLoading.isShow){
+      EasyLoading.dismiss();
+    }
     super.dispose();
   }
 

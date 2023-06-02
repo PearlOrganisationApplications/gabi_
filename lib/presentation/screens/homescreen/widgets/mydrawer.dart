@@ -69,46 +69,57 @@ class _MyDradwerState extends State<MyDradwer> {
               padding: EdgeInsets.symmetric(vertical: 12.0, horizontal: 4.0),
               child: Stack(
                 children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      Container(
-                        height: 100.0,
-                        width: 100.0,
-                        decoration: BoxDecoration(
-                          color: Colors.amber,
-                          borderRadius: BorderRadius.circular(50.0)
-                        ),
-                        child: Padding(
-                          padding: const EdgeInsets.all(0.4),
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.all(Radius.circular(50.0)),
-                              child: AppPreferences.getPhotoUrl() != ''?
-                              Image.network(AppPreferences.getPhotoUrl(),fit: BoxFit.fill,):
-                              Image.asset('assets/icons/user.png',fit: BoxFit.fill,),
+                  Center(
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        Container(
+                          height: 100.0,
+                          width: 100.0,
+                          decoration: BoxDecoration(
+                            color: Colors.amber,
+                            borderRadius: BorderRadius.circular(50.0)
+                          ),
+                          child: Padding(
+                            padding: const EdgeInsets.all(0.4),
+                            child: InkWell(
+                              onTap: () {
+                                Navigator.push(context, MaterialPageRoute(builder: (context) => ProfilePage(),)).then((value) {
+                                  FullScreen.setColor(navigationBarColor: Colors.white,statusBarColor: Colors.black);
+                                  setState(() {});
+                                });
+                              },
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.all(Radius.circular(50.0)),
+                                  child: AppPreferences.getPhotoUrl() != ''?
+                                  Image.network(AppPreferences.getPhotoUrl(),fit: BoxFit.fill,):
+                                  Image.asset('assets/icons/user.png',fit: BoxFit.fill,),
+                              ),
+                            ),
                           ),
                         ),
-                      ),
-                      SizedBox(width: 4.0,),
-                      Container(
-                        padding: EdgeInsets.symmetric(vertical: 1.0),
-                        //width: MediaQuery.of(context).size.width * 0.8,
-                        decoration: BoxDecoration(
-                          //color: Colors.blueGrey,
-                          borderRadius: BorderRadius.all(Radius.circular(4.0))
-                        ),
-                        child: Text(
-                          AppPreferences.getDisplayName(),
-                          //textAlign: TextAlign.center,
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 20.0,
-                            fontWeight: FontWeight.bold,
+                        SizedBox(width: 8.0,),
+                        Container(
+                          padding: EdgeInsets.symmetric(vertical: 1.0),
+                          //width: MediaQuery.of(context).size.width * 0.8,
+                          decoration: BoxDecoration(
+                            //color: Colors.blueGrey,
+                            borderRadius: BorderRadius.all(Radius.circular(4.0))
+                          ),
+                          child: Text(
+                            AppPreferences.getDisplayName(),
+                            //textAlign: TextAlign.center,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 20.0,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                   Align(
                     alignment: Alignment.topRight,
@@ -181,8 +192,11 @@ class _MyDradwerState extends State<MyDradwer> {
                     leading: const Icon(Icons.person),
                     title: const Text("Profile"),
                     onTap: () {
-                      Navigator.push(context, MaterialPageRoute(builder: (context) => ProfilePage(),)).then((value) => FullScreen.setColor(navigationBarColor: Colors.white,statusBarColor: Colors.black));
-                    },
+                      Navigator.push(context, MaterialPageRoute(builder: (context) => ProfilePage(),)).then((value) {
+                        FullScreen.setColor(navigationBarColor: Colors.white,statusBarColor: Colors.black);
+                        setState(() {});
+                      });
+                      },
                   ),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 8.0),
@@ -206,17 +220,17 @@ class _MyDradwerState extends State<MyDradwer> {
                       showLogoutPopup();
                     },
                   ),
-                  Padding(
+                  /*Padding(
                     padding: const EdgeInsets.symmetric(vertical: 50.0),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        /*Padding(
+                        *//*Padding(
                   padding: const EdgeInsets.all(10.0),
                   child: socialIocns(
                       images: 'assets/images/social/facebook.png',
                       ontap: () {}),
-                ),*/
+                ),*//*
                         Padding(
                           padding: const EdgeInsets.all(10.0),
                           child: socialIocns(
@@ -230,7 +244,7 @@ class _MyDradwerState extends State<MyDradwer> {
                         ),
                       ],
                     ),
-                  ),
+                  ),*/
                 ],
               ),
             ),
