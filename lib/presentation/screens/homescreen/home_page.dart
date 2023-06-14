@@ -11,6 +11,7 @@ import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gabi/app/api/app_api.dart';
 import 'package:gabi/presentation/screens/homescreen/widgets/custom_dialogs.dart';
+import 'package:gabi/presentation/screens/loginscreen/login.page.dart';
 import 'package:gabi/presentation/widgets/live_button.dart';
 import 'package:gabi/presentation/screens/homescreen/widgets/mydrawer.dart';
 import 'package:just_audio/just_audio.dart';
@@ -303,6 +304,8 @@ class _HomePageState extends State<HomePage> {
                                               for (var item in response.data['data']) {
                                                 recentsList.insert(0, item);
                                               }
+                                            }else if(response.data['status'] == 'false'){
+                                              Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (context) => LoginPage(),), (route) => false);
                                             }
                                             return recentsList.isNotEmpty? showRecentsList() : Center(child: Text('No Data Available!'),);
 

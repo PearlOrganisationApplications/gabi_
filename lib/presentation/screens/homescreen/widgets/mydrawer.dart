@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:gabi/app/preferences/app_preferences.dart';
 import 'package:gabi/presentation/screens/downloadscreen/download_screen.dart';
@@ -37,7 +39,7 @@ class _MyDradwerState extends State<MyDradwer> {
 
           ElevatedButton(
             onPressed: () async {
-              await GoogleSignIn().signOut();
+              if(Platform.isAndroid) await GoogleSignIn().signOut();
               AppPreferences.clearCredentials();
               await Download.clearDownloadTasks();
               Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (context) => LoginPage(),), (route) => false);

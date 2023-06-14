@@ -79,8 +79,6 @@ PODS:
   - FMDB (2.7.5):
     - FMDB/standard (= 2.7.5)
   - FMDB/standard (2.7.5)
-  - fullscreen (0.0.1):
-    - Flutter
   - google_sign_in_ios (0.0.1):
     - Flutter
     - GoogleSignIn (~> 6.2)
@@ -140,8 +138,6 @@ PODS:
   - sqflite (0.0.2):
     - Flutter
     - FMDB (>= 2.7.5)
-  - the_apple_sign_in (1.0.0):
-    - Flutter
   - Toast (4.0.0)
   - video_player_avfoundation (0.0.1):
     - Flutter
@@ -164,20 +160,18 @@ DEPENDENCIES:
   - flutter_inappwebview (from `.symlinks/plugins/flutter_inappwebview/ios`)
   - flutter_webrtc (from `.symlinks/plugins/flutter_webrtc/ios`)
   - fluttertoast (from `.symlinks/plugins/fluttertoast/ios`)
-  - fullscreen (from `.symlinks/plugins/fullscreen/ios`)
   - google_sign_in_ios (from `.symlinks/plugins/google_sign_in_ios/ios`)
   - image_picker_ios (from `.symlinks/plugins/image_picker_ios/ios`)
   - iris_method_channel (from `.symlinks/plugins/iris_method_channel/ios`)
   - just_audio (from `.symlinks/plugins/just_audio/ios`)
   - lecle_downloads_path_provider (from `.symlinks/plugins/lecle_downloads_path_provider/ios`)
   - native_device_orientation (from `.symlinks/plugins/native_device_orientation/ios`)
-  - path_provider_foundation (from `.symlinks/plugins/path_provider_foundation/ios`)
+  - path_provider_foundation (from `.symlinks/plugins/path_provider_foundation/darwin`)
   - permission_handler_apple (from `.symlinks/plugins/permission_handler_apple/ios`)
-  - shared_preferences_foundation (from `.symlinks/plugins/shared_preferences_foundation/ios`)
+  - shared_preferences_foundation (from `.symlinks/plugins/shared_preferences_foundation/darwin`)
   - sign_in_with_apple (from `.symlinks/plugins/sign_in_with_apple/ios`)
   - smart_auth (from `.symlinks/plugins/smart_auth/ios`)
   - sqflite (from `.symlinks/plugins/sqflite/ios`)
-  - the_apple_sign_in (from `.symlinks/plugins/the_apple_sign_in/ios`)
   - video_player_avfoundation (from `.symlinks/plugins/video_player_avfoundation/ios`)
   - wakelock (from `.symlinks/plugins/wakelock/ios`)
 
@@ -232,8 +226,6 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/flutter_webrtc/ios"
   fluttertoast:
     :path: ".symlinks/plugins/fluttertoast/ios"
-  fullscreen:
-    :path: ".symlinks/plugins/fullscreen/ios"
   google_sign_in_ios:
     :path: ".symlinks/plugins/google_sign_in_ios/ios"
   image_picker_ios:
@@ -247,19 +239,17 @@ EXTERNAL SOURCES:
   native_device_orientation:
     :path: ".symlinks/plugins/native_device_orientation/ios"
   path_provider_foundation:
-    :path: ".symlinks/plugins/path_provider_foundation/ios"
+    :path: ".symlinks/plugins/path_provider_foundation/darwin"
   permission_handler_apple:
     :path: ".symlinks/plugins/permission_handler_apple/ios"
   shared_preferences_foundation:
-    :path: ".symlinks/plugins/shared_preferences_foundation/ios"
+    :path: ".symlinks/plugins/shared_preferences_foundation/darwin"
   sign_in_with_apple:
     :path: ".symlinks/plugins/sign_in_with_apple/ios"
   smart_auth:
     :path: ".symlinks/plugins/smart_auth/ios"
   sqflite:
     :path: ".symlinks/plugins/sqflite/ios"
-  the_apple_sign_in:
-    :path: ".symlinks/plugins/the_apple_sign_in/ios"
   video_player_avfoundation:
     :path: ".symlinks/plugins/video_player_avfoundation/ios"
   wakelock:
@@ -286,7 +276,6 @@ SPEC CHECKSUMS:
   flutter_webrtc: ae7ab6f74d3c4f186594a74863f11433e7ab148a
   fluttertoast: eb263d302cc92e04176c053d2385237e9f43fad0
   FMDB: 2ce00b547f966261cd18927a3ddb07cb6f3db82a
-  fullscreen: d93e707e6b36120f20e64e2f814ee0726164e70b
   google_sign_in_ios: 1256ff9d941db546373826966720b0c24804bcdd
   GoogleSignIn: 5651ce3a61e56ca864160e79b484cd9ed3f49b7a
   GTMAppAuth: 0ff230db599948a9ad7470ca667337803b3fc4dd
@@ -310,7 +299,6 @@ SPEC CHECKSUMS:
   sign_in_with_apple: f3bf75217ea4c2c8b91823f225d70230119b8440
   smart_auth: 4bedbc118723912d0e45a07e8ab34039c19e04f2
   sqflite: 6d358c025f5b867b29ed92fc697fd34924e11904
-  the_apple_sign_in: 2e78c83cdb09eba07bb16dcc1f3bc12fcdc8263d
   Toast: 91b396c56ee72a5790816f40d3a94dd357abc196
   video_player_avfoundation: 81e49bb3d9fb63dccf9fa0f6d877dc3ddbeac126
   wakelock: d0fc7c864128eac40eba1617cb5264d9c940b46f

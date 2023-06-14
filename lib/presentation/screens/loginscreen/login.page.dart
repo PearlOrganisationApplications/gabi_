@@ -353,7 +353,7 @@ class _LoginPageState extends State<LoginPage> {
       ShowSnackBar().showSnackBar(context,
           'No Response from Server',
           duration: Duration(seconds: 5));
-    }else if (response.data['status']) {
+    }else if (response.data['status'] == 'true') {
       Fluttertoast.showToast(
           msg: 'Login Successful!');
       Navigator.pushReplacement(
@@ -362,7 +362,7 @@ class _LoginPageState extends State<LoginPage> {
           builder: (context) => HomePage(),
         ),
       );
-    }else if (!response.data['status']) {
+    }else if (!response.data['status'] == 'false') {
       ShowSnackBar().showSnackBar(
           context, 'Wrong credentials!',
           duration: Duration(seconds: 5));

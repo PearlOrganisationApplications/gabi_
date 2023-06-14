@@ -186,7 +186,7 @@ class API {
             'name': name??'',
           }));
 
-      if(response.data['status'] == true){
+      if(response.data['status'] == "true"){
         await _saveUserData(response);
       }
 
@@ -563,7 +563,7 @@ class API {
 
   static Future<void> _saveUserData(Response response) async {
 
-    print(response.toString());
+    print('Final credentials: ${response.toString()}');
     AppPreferences.saveCredentials(
       token: response.data['token']??AppPreferences.getToken(),
       email: response.data['user']['email']??AppPreferences.getEmailAddress(),
@@ -577,3 +577,6 @@ class API {
   }
 
 }
+
+
+//Comment
