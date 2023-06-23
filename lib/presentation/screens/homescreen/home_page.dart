@@ -10,6 +10,7 @@ import 'package:flutter_custom_dialog/flutter_custom_dialog.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gabi/app/api/app_api.dart';
+import 'package:gabi/app/preferences/app_preferences.dart';
 import 'package:gabi/presentation/screens/homescreen/widgets/custom_dialogs.dart';
 import 'package:gabi/presentation/screens/loginscreen/login.page.dart';
 import 'package:gabi/presentation/widgets/live_button.dart';
@@ -54,11 +55,7 @@ class _HomePageState extends State<HomePage> {
   
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   DateTime? backButtonPressTime;
-  List<String> imagesList = [
-    'assets/images/social/test.jpg',
-    'assets/images/social/test.jpg',
-    'assets/images/social/test.jpg',
-  ];
+  List<String> imagesList = [''];
   bool _networkBanner = false;
   List<Map<String, dynamic>> trendingList = [];
   List<Map<String, dynamic>> recentsList = [];
@@ -222,10 +219,16 @@ class _HomePageState extends State<HomePage> {
                                             ),
                                             Container(
                                               width: MediaQuery.of(context).size.width * 0.9,
-                                              height: MediaQuery.of(context).size.width * 0.9,
+                                              height: MediaQuery.of(context).size.width * 0.6,
+                                              decoration: BoxDecoration(
+                                                color: Colors.grey.shade200,
+                                                borderRadius: BorderRadius.all(Radius.circular(20.0)),
+                                              ),
                                               child: _networkBanner
-                                                  ? Image.network(item, fit: BoxFit.fill)
-                                                  : Image.asset(item, fit: BoxFit.fill),
+                                                  ? ClipRRect(
+                                                  borderRadius: BorderRadius.all(Radius.circular(20.0)),
+                                                  child: Image.network(item, fit: BoxFit.fill))
+                                                  : Center(child: CircularProgressIndicator()),
                                             ),
                                           ],
                                         ),
@@ -243,13 +246,13 @@ class _HomePageState extends State<HomePage> {
                                           ref.read(indicatorPositionProvider.notifier).state = index;
 
                                         },
-                                        enableInfiniteScroll: true,
+                                        enableInfiniteScroll: imagesList.length ==1? false:true,
                                         autoPlayAnimationDuration:
                                         const Duration(milliseconds: 800),
                                         viewportFraction: .9,
                                       ),
                                     ),
-                                    Center(
+                                    if(imagesList.length>1)Center(
                                       child: CarouselIndicator(
                                         activeColor: Colors.green,
                                         color: Colors.black,
@@ -294,25 +297,43 @@ class _HomePageState extends State<HomePage> {
                                           alignment: Alignment.center,
                                           width: MediaQuery.of(context).size.width,
                                           height: 200,
-                                          child: connectivityStatusProvider == ConnectivityStatus.isConnected?
-                                          recentlyPlayedDataProvider.when(data: (response) {
+                                          child: recentlyPlayedDataProvider.when(
+                                              data: (response) {
 
-                                            if(response == null){
+                                                if(response == null){
 
-                                            }else if(response.data['status'] == 'true'){
-                                              recentsList.clear();
-                                              for (var item in response.data['data']) {
-                                                recentsList.insert(0, item);
-                                              }
-                                            }else if(response.data['status'] == 'false'){
-                                              Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (context) => LoginPage(),), (route) => false);
-                                            }
-                                            return recentsList.isNotEmpty? showRecentsList() : Center(child: Text('No Data Available!'),);
+                                                }else if(response.data['status'] == 'true'){
+                                                  recentsList.clear();
+                                                  for (var item in response.data['data']) {
+                                                    recentsList.insert(0, item);
+                                                  }
+                                                }else if(response.data['status'] == 'false'){
+                                                  if(response.data['message']=='User not found') {
+                                                    WidgetsBinding.instance
+                                                        .addPostFrameCallback((
+                                                        timeStamp) {
+                                                      AppPreferences
+                                                          .clearCredentials();
+                                                      Navigator.pushAndRemoveUntil(
+                                                          context,
+                                                          MaterialPageRoute(
+                                                            builder: (context) =>
+                                                                LoginPage(),), (
+                                                          route) => false);
+                                                    });
+                                                  }
+                                                }
+                                                return recentsList.isNotEmpty? showRecentsList() : Center(child: Text('No Data/Internet!'),);
 
-                                          }, error: (error, stackTrace) => Text('Error Fetching Data. ${error
-                                          }'), loading: (){
-                                            return Center(child: CircularProgressIndicator(color: Colors.green,));
-                                          }): recentsList.isNotEmpty? showRecentsList() : Center(child: Text('No Internet Connection!'),),
+                                              },
+                                              error: (error, stackTrace) => Text('Error Fetching Data. ${error}'),
+                                              loading: (){
+                                                return Center(child: CircularProgressIndicator(color: Colors.green,));
+                                              }),
+
+                                          /*connectivityStatusProvider == ConnectivityStatus.isConnected
+                                              ?
+                                              : recentsList.isNotEmpty? showRecentsList() : Center(child: Text('No Internet Connection'),),*/
                                         );
                                       },
                                   ),
@@ -404,8 +425,7 @@ class _HomePageState extends State<HomePage> {
                                       alignment: Alignment.center,
                                       width: MediaQuery.of(context).size.width,
                                       //height: 400,
-                                      child: connectivityStatusProvider == ConnectivityStatus.isConnected?
-                                      allSongsDataProvider.when(data: (response) {
+                                      child: allSongsDataProvider.when(data: (response) {
 
                                         if(response == null){
 
@@ -421,7 +441,9 @@ class _HomePageState extends State<HomePage> {
                                       }, error: (error, stackTrace) => Text('Error Fetching Data. ${error
                                       }'), loading: (){
                                         return Center(child: CircularProgressIndicator(color: Colors.blue,));
-                                      }): allSongsList.isNotEmpty? showAllSongsList() : Center(child: Text('No Internet Connection!'),),
+                                      }),
+                                      /*connectivityStatusProvider == ConnectivityStatus.isConnected?
+                                      : allSongsList.isNotEmpty? showAllSongsList() : Center(child: Text('No Internet Connection!'),),*/
                                     );
                                   },
                                 ),
@@ -1316,12 +1338,12 @@ class _HomePageState extends State<HomePage> {
         banners.add(item['img']);
       }
       if(banners.isNotEmpty){
-        setState(() {
-          imagesList.clear();
-          imagesList = banners;
-          _networkBanner = true;
-        });
+        imagesList.clear();
       }
+      setState(() {
+        imagesList = banners;
+        _networkBanner = true;
+      });
     }
   }
 

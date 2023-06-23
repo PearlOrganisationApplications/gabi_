@@ -38,11 +38,11 @@
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>NSCameraUsageDescription</key>
-	<string>Camera for live streaming</string>
+	<string>GABI would like to access camera for changing profile picture and live-streaming</string>
 	<key>NSMicrophoneUsageDescription</key>
-	<string>Microphone for live streaming</string>
+	<string>GABI would like to access Microphone in live-streaming</string>
 	<key>NSPhotoLibraryUsageDescription</key>
-	<string>GABI would like access to your photo gallery to upload your profile photos</string>
+	<string>GABI would like to access photo-gallery for changing profile picture</string>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
 	<key>UIBackgroundModes</key>

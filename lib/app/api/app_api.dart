@@ -175,8 +175,9 @@ class API {
     };*/
 
     try {
+      //print('Deal: $name');
       Response response = await _dio.post(
-          _login_url, data: jsonEncode(
+          _login_url, data:
           {
             'email': email??'',
             'password': password??'',
@@ -184,7 +185,7 @@ class API {
             'apple_id': appleId??'',
             'type': type,
             'name': name??'',
-          }));
+          });
 
       if(response.data['status'] == "true"){
         await _saveUserData(response);
@@ -314,6 +315,7 @@ class API {
         },
       );
       Response response = await _dio.get(_get_recents_songs_url, options: options);
+      print('Recents: $response');
       return response;
     } on DioError catch (e) {
       print(e.response?.statusCode);

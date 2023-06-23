@@ -5,6 +5,7 @@ import 'package:flutter_custom_dialog/flutter_custom_dialog.dart';
 import 'package:flutter_downloader/flutter_downloader.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:gabi/presentation/screens/onboardingscreen/onboarding.page.dart';
 import 'package:gabi/presentation/screens/profilescreen/profile_page.dart';
 
 
@@ -88,7 +89,7 @@ class MyApp extends StatelessWidget {
         applyElevationOverlayColor: false,
       ),
       home: const Splashscreen(),
-      //home: ProfilePage(),
+      //home: OnBoardingScreen(),
       builder: EasyLoading.init(),
     );
   }

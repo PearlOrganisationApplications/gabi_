@@ -150,6 +150,7 @@ class _ProfilePageState extends State<ProfilePage> {
     Response? response = await API.getUserProfile();
     EasyLoading.dismiss();
 
+    print('Profile: $response');
     if(response == null){
       EasyLoading.showToast('Server Unavailable');
     }else if(response.data['status']== "true"){

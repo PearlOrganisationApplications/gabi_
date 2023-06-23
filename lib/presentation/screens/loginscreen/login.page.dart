@@ -43,312 +43,312 @@ class _LoginPageState extends State<LoginPage> {
         statusBarColor: Colors.black, navigationBarColor: Colors.white);
     return Scaffold(
       backgroundColor: Colors.white,
-      body: SafeArea(
-        child: Column(
-          children: [
-            Container(
-              padding: EdgeInsets.only(top: 8.0),
-              height: MediaQuery
-                  .of(context)
-                  .size
-                  .height * 0.30,
-              width: double.infinity,
-              decoration: BoxDecoration(
-                color: Colors.black,
-                border: Border.all(color: Colors.black, width: 0.0),
-              ),
-              child: Image(
-                image: AssetImage(
-                  'assets/icons/everywhere_icon.png',
-                ),
-                fit: BoxFit.fitHeight,
-              ),
+      body: Column(
+        children: [
+          Container(
+            padding: EdgeInsets.only(top: MediaQuery.paddingOf(context).top),
+            height: MediaQuery
+                .of(context)
+                .size
+                .height * 0.30,
+            width: double.infinity,
+            decoration: BoxDecoration(
+              color: Colors.black,
+              border: Border.all(color: Colors.black, width: 0.0),
             ),
-            Expanded(
-                child: Stack(
-                  children: [
-                    ClipPath(
-                      clipper: BottomClipper(),
-                      child: Container(
-                        color: Colors.black,
-                        height: 90,
-                      ),
+            child: Image(
+              image: AssetImage(
+                'assets/icons/everywhere_icon.png',
+              ),
+              fit: BoxFit.fitHeight,
+            ),
+          ),
+          Expanded(
+              child: Stack(
+                children: [
+                  ClipPath(
+                    clipper: BottomClipper(),
+                    child: Container(
+                      color: Colors.black,
+                      height: 90,
                     ),
-                    Container(
-                      padding: EdgeInsets.symmetric(horizontal: MediaQuery.of(context).size.width * 0.04),
-                      decoration: BoxDecoration(
-                        border: Border(top: BorderSide(color: Colors.black, width: 0.0)),
-                      ),
-                      child: SingleChildScrollView(
-                        physics: BouncingScrollPhysics(),
-                        child: Column(
-                          children: [
-                            SizedBox(height: 50.0,),
-                            BlurryContainer(
-                              color: Colors.black.withOpacity(0.5),
-                              blur: 0.9,
-                              child: Column(
-                                children: [
-                                  Form(
-                                      key: _formKey,
-                                      child: Column(
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: [
-                                          SizedBox(height: 8.0,),
-                                          CustomTextFormFieldEmail(
-                                              onValueChanged: (value) {
-                                                userEmailController.text =
-                                                    value;
-                                              },
-                                            textColor: Colors.white,
-                                          ),
-                                          const SizedBox(
-                                            height: 20.0,
-                                          ),
-                                          CustomTextFormFieldPassword(
-                                              onValueChanged: (value) {
-                                                userPassController.text = value;
-                                              },
-                                            textColor: Colors.white,
-                                          ),
-                                        ],
-                                      )),
-                                  const SizedBox(
-                                    height: 25.0,
-                                  ),
-                                  CustomMaterialButton(
-                                    color: Colors.amber,
-                                    text: "Login",
-                                    textColor: Colors.white,
-                                    onPressed: () async {
-                                      if (_formKey.currentState!.validate()) {
-                                        EasyLoading.show();
-                                        var response = await API.login(
-                                            email: userEmailController.text
-                                                .toString(),
-                                            password: userPassController.text
-                                                .toString(),
-                                            type: 'normal',
-                                        );
-
-                                        EasyLoading.dismiss();
-                                        loginResponse(response: response);
-                                      } else {
-                                        ShowSnackBar().showSnackBar(
-                                            context, 'Enter your credentials!',
-                                            duration: Duration(seconds: 5));
-                                      }
-                                    },
-                                  ),
-                                  const SizedBox(
-                                    height: 15.0,
-                                  ),
-                                  Row(
-                                    mainAxisAlignment: MainAxisAlignment.end,
-                                    children: [
-                                      TextButton(
-                                        onPressed: () {
-                                          Navigator.push(
-                                            context,
-                                            MaterialPageRoute(
-                                              builder: (context) =>
-                                                  ForgotPasswordScreen(),
-                                            ),
-                                          ).then((value) {
-                                            FullScreen.setColor(
-                                                statusBarColor: Colors.black,
-                                                navigationBarColor: Colors
-                                                    .white);
-                                          });
-                                        },
-                                        child: const Text(
-                                          "Forgot Your password?",
-                                          style: TextStyle(
-                                            color: Colors.black,
-                                            fontSize: 15.0,
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ],
-                              ),
-                            ),
-                            /*TextField(
-                              controller: con,
-                            ),*/
-
-                            const SizedBox(
-                              height: 15.0,
-                            ),
-
-                            Platform.isAndroid?
-                                Column(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    CustomMaterialButtonWithIcon(
-                                      color: Colors.blue,
-                                      text: 'Sign In with Google',
-                                      textColor: Colors.white,
-
-                                      icon: 'assets/images/social/google.png',
-                                      onPressed: () async {
-                                        try {
-                                          await GoogleSignIn().signOut();
-                                          final googleUser = await GoogleSignIn(
-                                            scopes: ['email', 'profile', 'openid',],
-                                            clientId: "807297048318-jt0sl02b33qr502a47lfgqnfhpbd021o.apps.googleusercontent.com",
-                                          ).signIn();
-                                          print('Email: ${googleUser!.email}');
-                                          if (googleUser != null) {
-                                            //final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
-                                            //print('idToken : ${googleAuth.idToken}');
-                                            //EasyLoading.show(status: googleUser.displayName, dismissOnTap: true);
-                                            // setState(() {
-                                            //   con.text = googleAuth?.idToken ?? '';
-                                            // });
-
-                                            print('Email: ${googleUser.id}\nToken: ${googleUser.displayName}');
-
-                                            EasyLoading.show();
-                                            final Response? response = await API.login(
-                                                email: googleUser.email,
-                                                clientToken: googleUser.id.toString(),
-                                                type: 'google',
-                                                name: googleUser.displayName,
-                                            );
-                                            EasyLoading.dismiss();
-                                            loginResponse(response: response);
-
-                                          } else {
-                                            EasyLoading.showError('Canceled by user',
-                                                duration: Duration(seconds: 3));
-                                          }
-                                        } catch (exception) {
-                                          EasyLoading.showError(exception.toString(),
-                                              duration: Duration(seconds: 3));
-                                          print('Error: ' + exception.toString());
-                                        }
-                                      },
-                                    ),
-                                    SizedBox(
-                                      height: MediaQuery
-                                          .of(context)
-                                          .size
-                                          .height * 0.05,
-                                    ),
-                                  ],
-                                ) :
-                            Column(
-                              mainAxisSize: MainAxisSize.min,
+                  ),
+                  Container(
+                    alignment: Alignment.center,
+                    padding: EdgeInsets.symmetric(horizontal: MediaQuery.of(context).size.width * 0.04),
+                    decoration: BoxDecoration(
+                      border: Border(top: BorderSide(color: Colors.black, width: 0.0)),
+                    ),
+                    child: SingleChildScrollView(
+                      physics: BouncingScrollPhysics(),
+                      child: Column(
+                        children: [
+                          SizedBox(height: 50.0,),
+                          BlurryContainer(
+                            color: Colors.black.withOpacity(0.5),
+                            blur: 0.9,
+                            child: Column(
                               children: [
-                                CustomMaterialButtonWithIcon(
-                                  color: Colors.grey,
-                                  text: 'Sign In with Apple',
-                                  textColor: Colors.black,
-                                  icon: 'assets/images/social/apple.ico',
-                                  iconColor: Colors.white,
+                                Form(
+                                    key: _formKey,
+                                    child: Column(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        SizedBox(height: 8.0,),
+                                        CustomTextFormFieldEmail(
+                                            onValueChanged: (value) {
+                                              userEmailController.text =
+                                                  value;
+                                            },
+                                          textColor: Colors.white,
+                                        ),
+                                        const SizedBox(
+                                          height: 20.0,
+                                        ),
+                                        CustomTextFormFieldPassword(
+                                            onValueChanged: (value) {
+                                              userPassController.text = value;
+                                            },
+                                          textColor: Colors.white,
+                                        ),
+                                      ],
+                                    )),
+                                const SizedBox(
+                                  height: 25.0,
+                                ),
+                                CustomMaterialButton(
+                                  color: Colors.amber,
+                                  text: "Login",
+                                  textColor: Colors.white,
                                   onPressed: () async {
-                                    try {
-
-                                      final credential = await SignInWithApple.getAppleIDCredential(
-                                        scopes: [
-                                          AppleIDAuthorizationScopes.email,
-                                          AppleIDAuthorizationScopes.fullName,
-                                        ],
+                                    if (_formKey.currentState!.validate()) {
+                                      EasyLoading.show();
+                                      var response = await API.login(
+                                          email: userEmailController.text,
+                                          password: userPassController.text,
+                                          type: 'normal',
                                       );
-                                      if (credential.userIdentifier != null) {
-                                        final result = await SignInWithApple.getCredentialState(credential.userIdentifier!);
-                                        if(result == CredentialState.authorized){
-                                          EasyLoading.show();
-                                          final Response? response = await API.login(
-                                              //email: credential.email?? '',
-                                              email: '${credential.userIdentifier}@apple.com',
-                                              appleId: '${credential.userIdentifier}@apple.com',
-                                              name: '${credential.givenName} ${credential.familyName}'?? '',
-                                              type: 'apple'
-                                          );
-                                          EasyLoading.dismiss();
-                                          loginResponse(response: response);
-                                        } else {
-                                          EasyLoading.showError('Unauthorized',
-                                              duration: Duration(seconds: 3));
-                                        }
-                                      } else {
-                                        EasyLoading.showError('Canceled by user',
-                                            duration: Duration(seconds: 3));
-                                      }
-                                      //credential.
-                                    }catch (exception) {
-                                      EasyLoading.showError(exception.toString(),
-                                          duration: Duration(seconds: 3));
-                                      print(
-                                          'Error: ' + exception.toString());
+
+                                      EasyLoading.dismiss();
+                                      loginResponse(response: response);
+                                    } else {
+                                      ShowSnackBar().showSnackBar(
+                                          context, 'Enter your credentials!',
+                                          duration: Duration(seconds: 5));
                                     }
                                   },
                                 ),
-                                SizedBox(
-                                  height: MediaQuery
-                                      .of(context)
-                                      .size
-                                      .height * 0.05,
+                                const SizedBox(
+                                  height: 15.0,
                                 ),
-                              ],
-                            ),
-
-
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                InkWell(
-                                  onTap: () {
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                          builder: (context) => SignUpScreen()),
-                                    ).then((value) {
-                                      FullScreen.setColor(
-                                          statusBarColor: Colors.black,
-                                          navigationBarColor: Colors.white);
-                                    });
-                                  },
-                                  child: Container(
-                                    alignment: Alignment.center,
-                                    height: 40.0,
-                                    child: Text.rich(
-                                      TextSpan(
-                                          text: 'New User? ', style: TextStyle(color: Colors.black, fontSize: 16.0),
-                                          children: [
-                                            TextSpan(
-                                              text: 'Sign up!', style: TextStyle(/*decoration: TextDecoration.underline,*/ color: Colors.blue, fontSize: 18.0),
-                                            ),
-                                          ]
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.end,
+                                  children: [
+                                    TextButton(
+                                      onPressed: () {
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) =>
+                                                ForgotPasswordScreen(),
+                                          ),
+                                        ).then((value) {
+                                          FullScreen.setColor(
+                                              statusBarColor: Colors.black,
+                                              navigationBarColor: Colors
+                                                  .white);
+                                        });
+                                      },
+                                      child: const Text(
+                                        "Forgot Your password?",
+                                        style: TextStyle(
+                                          color: Colors.black,
+                                          fontSize: 15.0,
+                                        ),
                                       ),
                                     ),
-                                  ),
+                                  ],
                                 ),
                               ],
                             ),
+                          ),
+                          /*TextField(
+                            controller: con,
+                          ),*/
+
+                          const SizedBox(
+                            height: 15.0,
+                          ),
+
+                          Platform.isAndroid
+                              ? Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  CustomMaterialButtonWithIcon(
+                                    color: Colors.blue,
+                                    text: 'Sign In with Google',
+                                    textColor: Colors.white,
+
+                                    icon: 'assets/images/social/google.png',
+                                    onPressed: () async {
+                                      try {
+                                        await GoogleSignIn().signOut();
+                                        final googleUser = await GoogleSignIn(
+                                          scopes: ['email', 'profile', 'openid',],
+                                          clientId: "807297048318-jt0sl02b33qr502a47lfgqnfhpbd021o.apps.googleusercontent.com",
+                                        ).signIn();
+                                        print('Email: ${googleUser!.email}');
+                                        if (googleUser != null) {
+                                          //final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
+                                          //print('idToken : ${googleAuth.idToken}');
+                                          //EasyLoading.show(status: googleUser.displayName, dismissOnTap: true);
+                                          // setState(() {
+                                          //   con.text = googleAuth?.idToken ?? '';
+                                          // });
+
+                                          print('Email: ${googleUser.id}\nToken: ${googleUser.displayName}');
+
+                                          EasyLoading.show();
+                                          final Response? response = await API.login(
+                                              email: googleUser.email,
+                                              clientToken: googleUser.id.toString(),
+                                              type: 'google',
+                                              name: googleUser.displayName,
+                                          );
+                                          EasyLoading.dismiss();
+                                          loginResponse(response: response);
+
+                                        } else {
+                                          EasyLoading.showError('Canceled by user',
+                                              duration: Duration(seconds: 3));
+                                        }
+                                      } catch (exception) {
+                                        EasyLoading.showError(exception.toString(),
+                                            duration: Duration(seconds: 3));
+                                        print('Error: ' + exception.toString());
+                                      }
+                                    },
+                                  ),
+                                  SizedBox(
+                                    height: MediaQuery
+                                        .of(context)
+                                        .size
+                                        .height * 0.05,
+                                  ),
+                                ],
+                              )
+                              : Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              CustomMaterialButtonWithIcon(
+                                color: Colors.grey,
+                                text: 'Sign In with Apple',
+                                textColor: Colors.black,
+                                icon: 'assets/images/social/apple.ico',
+                                iconColor: Colors.white,
+                                onPressed: () async {
+                                  try {
+
+                                    final credential = await SignInWithApple.getAppleIDCredential(
+                                      scopes: [
+                                        AppleIDAuthorizationScopes.email,
+                                        AppleIDAuthorizationScopes.fullName,
+                                      ],
+                                    );
+                                    if (credential.userIdentifier != null) {
+                                      final result = await SignInWithApple.getCredentialState(credential.userIdentifier!);
+                                      if(result == CredentialState.authorized){
+                                        EasyLoading.show();
+                                        final Response? response = await API.login(
+                                            //email: credential.email?? '',
+                                            email: '${credential.userIdentifier}@apple.com',
+                                            appleId: '${credential.userIdentifier}@apple.com',
+                                            name: '${credential.givenName??'User'} ${credential.familyName??'Name'}',
+                                            type: 'apple'
+                                        );
+                                        EasyLoading.dismiss();
+                                        loginResponse(response: response);
+                                      } else {
+                                        EasyLoading.showError('Unauthorized',
+                                            duration: Duration(seconds: 3));
+                                      }
+                                    } else {
+                                      EasyLoading.showError('Canceled by user',
+                                          duration: Duration(seconds: 3));
+                                    }
+                                    //credential.
+                                  }catch (exception) {
+                                    EasyLoading.showError(exception.toString(),
+                                        duration: Duration(seconds: 3));
+                                    print(
+                                        'Error: ' + exception.toString());
+                                  }
+                                },
+                              ),
+                              SizedBox(
+                                height: MediaQuery
+                                    .of(context)
+                                    .size
+                                    .height * 0.05,
+                              ),
+                            ],
+                          ),
+
+
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text.rich(
+                                TextSpan(
+                                    children: [
+                                      WidgetSpan(
+                                          child: Padding(
+                                            padding: EdgeInsets.symmetric(vertical: 8.0),
+                                            child: Text('New User? ', style: TextStyle(color: Colors.black, fontSize: 16.0),),
+                                          )
+                                      ),
+                                      WidgetSpan(
+                                          child: InkWell(
+                                            onTap: () {
+                                              Navigator.push(
+                                                context,
+                                                MaterialPageRoute(
+                                                    builder: (context) => SignUpScreen()),
+                                              ).then((value) {
+                                                FullScreen.setColor(
+                                                    statusBarColor: Colors.black,
+                                                    navigationBarColor: Colors.white);
+                                              });
+                                            },
+                                            child: Padding(
+                                              padding: const EdgeInsets.symmetric(vertical: 8.0),
+                                              child: Text('Sign up!', style: TextStyle(/*decoration: TextDecoration.underline,*/ color: Colors.blue, fontSize: 18.0),),
+                                            ),
+                                          )
+                                      ),
+                                    ]
+                                ),
+                              ),
+                            ],
+                          ),
 
 
 
-                            const SizedBox(
-                              height: 20.0,
-                            ),
-                          ],
-                        ),
+                          const SizedBox(
+                            height: 20.0,
+                          ),
+                        ],
                       ),
                     ),
-                  ],
-                )),
-          ],
-        ),
+                  ),
+                ],
+              )),
+        ],
       ),
     );
   }
 
   void loginResponse({Response? response}) {
-    print(response.toString());
     if (response == null) {
       ShowSnackBar().showSnackBar(context,
           'No Response from Server',
@@ -362,7 +362,7 @@ class _LoginPageState extends State<LoginPage> {
           builder: (context) => HomePage(),
         ),
       );
-    }else if (!response.data['status'] == 'false') {
+    }else if (response.data['status'] == 'false') {
       ShowSnackBar().showSnackBar(
           context, 'Wrong credentials!',
           duration: Duration(seconds: 5));
