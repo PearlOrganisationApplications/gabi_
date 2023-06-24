@@ -53,8 +53,8 @@ android {
         // For more information, see: https://docs.flutter.dev/deployment/android#reviewing-the-gradle-build-configuration.
         minSdkVersion 21
         targetSdkVersion flutter.targetSdkVersion
-        versionCode 2
-        versionName '1.0.1'
+        versionCode 3
+        versionName '1.0.2'
 
         manifestPlaceholders += [
                 'appAuthRedirectScheme': 'com.googleusercontent.apps.807297048318-dbri9kece1dsreqtf723ltsbgm1nt70k.apps.googleusercontent.com'
