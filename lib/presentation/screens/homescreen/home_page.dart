@@ -17,6 +17,7 @@ import 'package:gabi/presentation/widgets/live_button.dart';
 import 'package:gabi/presentation/screens/homescreen/widgets/mydrawer.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:audio_session/audio_session.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 import '../../../customwidgets/snackbar.dart';
 import '../../../riverpod/connectivity_status_notifier.dart';
@@ -149,6 +150,28 @@ class _HomePageState extends State<HomePage> {
     init();
     super.initState();
   }
+  Future permission() async {
+    if (await Permission.camera.status != PermissionStatus.granted) {
+      var status = await Permission.storage.request();
+      if (status == PermissionStatus.denied) {
+        EasyLoading.showError(
+            'Permission required!!', dismissOnTap: true,
+            duration: Duration(seconds: 3));
+      } else if (status == PermissionStatus.permanentlyDenied) {
+        EasyLoading.showError(
+            'Allow Camera Permission!', dismissOnTap: true,
+            duration: Duration(seconds: 3));
+        Future.delayed(Duration(seconds: 3), () {
+          openAppSettings();
+        });
+      }else if(status ==PermissionStatus.granted){
+        CustomDialogs.streamOptionsDialog(context: context);
+      }
+    }else{
+      CustomDialogs.streamOptionsDialog(context: context);
+    }
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -175,7 +198,7 @@ class _HomePageState extends State<HomePage> {
                   InkWell(
                     onTap: () {
                       //Navigator.push(context, MaterialPageRoute(builder: (context) => LiveStreamOptions(),));
-                      CustomDialogs.streamOptionsDialog(context: context);
+                      permission();
                       //CustomDialogBox(title_button1: 'START', title_button2: 'JOIN', context: context);
                     },
                     child: LiveButtonWidget(),

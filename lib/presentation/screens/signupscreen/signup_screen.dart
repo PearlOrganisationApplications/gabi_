@@ -6,6 +6,7 @@ import 'package:gabi/app/constants/app_images.dart';
 import 'package:gabi/app/constants/app_strings.dart';
 import 'package:gabi/app/constants/constant.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 import '../../../app/constants/app_colors.dart';
 import '../../../customwidgets/snackbar.dart';
@@ -132,6 +133,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
   }
 
   pickImage(ImageSource imageType) async {
+    await permission();
     try {
       final photo = await ImagePicker().pickImage(source: imageType, imageQuality: 20);
       print('firsterror');
@@ -142,7 +144,26 @@ class _SignUpScreenState extends State<SignUpScreen> {
       });
       Navigator.pop(context);
     } catch (error) {
+      EasyLoading.showToast('Access denied!');
       debugPrint(error.toString());
+    }
+  }
+
+  Future permission() async {
+    if (await Permission.camera.status != PermissionStatus.granted) {
+      var status = await Permission.storage.request();
+      if (status == PermissionStatus.denied) {
+        EasyLoading.showError(
+            'Permission required!!', dismissOnTap: true,
+            duration: Duration(seconds: 3));
+      } else if (status == PermissionStatus.permanentlyDenied) {
+        EasyLoading.showError(
+            'Allow Camera Permission!', dismissOnTap: true,
+            duration: Duration(seconds: 3));
+        Future.delayed(Duration(seconds: 3), () {
+          openAppSettings();
+        });
+      }
     }
   }
 

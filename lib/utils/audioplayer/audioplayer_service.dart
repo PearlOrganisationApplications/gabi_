@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:just_audio/just_audio.dart';
 
-import '../../customwidgets/audio_player.dart';
 
 class AudioPlayerService {
 
@@ -90,3 +89,11 @@ class AudioPlayerStateNotifier extends StateNotifier<bool> {
 
 }
 */
+
+
+class DurationState {
+  const DurationState({required this.progress, required this.buffered, required this.total});
+  final Duration progress;
+  final Duration buffered;
+  final Duration total;
+}

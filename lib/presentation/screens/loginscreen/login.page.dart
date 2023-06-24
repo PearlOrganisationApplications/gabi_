@@ -5,13 +5,13 @@ import 'package:blurrycontainer/blurrycontainer.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:dio/dio.dart';
-import 'package:fluttertoast/fluttertoast.dart';
 import 'package:gabi/app/api/app_api.dart';
 import 'package:gabi/customwidgets/snackbar.dart';
 import 'package:gabi/presentation/screens/homescreen/home_page.dart';
 import 'package:gabi/presentation/screens/signupscreen/signup_screen.dart';
 import 'package:gabi/presentation/widgets/custom_materialbutton.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:permission_handler/permission_handler.dart';
 import '../../../utils/systemuioverlay/full_screen.dart';
 import '../../widgets/custom_textformfield.dart';
 import 'package:sign_in_with_apple/sign_in_with_apple.dart';
@@ -354,8 +354,7 @@ class _LoginPageState extends State<LoginPage> {
           'No Response from Server',
           duration: Duration(seconds: 5));
     }else if (response.data['status'] == 'true') {
-      Fluttertoast.showToast(
-          msg: 'Login Successful!');
+      EasyLoading.showToast('Login Successful!');
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(

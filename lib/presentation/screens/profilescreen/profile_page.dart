@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:gabi/app/api/app_api.dart';
 import 'package:gabi/app/preferences/app_preferences.dart';
@@ -13,6 +14,7 @@ import 'package:gabi/presentation/widgets/nospace_formatter.dart';
 import 'package:gabi/widgets/circle_avatar_with_title.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 import '../../../app/constants/app_colors.dart';
 import '../../../app/constants/app_images.dart';
@@ -130,6 +132,7 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 
   pickImage(ImageSource imageType) async {
+    await permission();
     try {
       final photo = await ImagePicker().pickImage(source: imageType, imageQuality: 20);
       if (photo == null) return;
@@ -138,10 +141,29 @@ class _ProfilePageState extends State<ProfilePage> {
         pickedImage = tempImage;
       });
       Navigator.pop(context);
-    } catch (error) {
+    }catch (error) {
+      EasyLoading.showToast('Access denied!');
       debugPrint(error.toString());
     }
   }
+  Future permission() async {
+    if (await Permission.camera.status != PermissionStatus.granted) {
+      var status = await Permission.storage.request();
+      if (status == PermissionStatus.denied) {
+        EasyLoading.showError(
+            'Permission required!!', dismissOnTap: true,
+            duration: Duration(seconds: 3));
+      } else if (status == PermissionStatus.permanentlyDenied) {
+        EasyLoading.showError(
+            'Allow Camera Permission!', dismissOnTap: true,
+            duration: Duration(seconds: 3));
+        Future.delayed(Duration(seconds: 3), () {
+          openAppSettings();
+        });
+      }
+    }
+  }
+
 
 
 
