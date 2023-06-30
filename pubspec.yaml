@@ -58,7 +58,7 @@ dependencies:
   #marquee: ^2.2.3
   permission_handler: ^10.2.0
   path_provider: ^2.0.12
-  flutter_downloader: ^1.10.2
+  flutter_downloader: ^1.10.4
   dio: ^5.1.0
   #fluttertoast: ^8.2.1
   flutter_easyloading: ^3.0.5

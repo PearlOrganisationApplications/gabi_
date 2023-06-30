@@ -41,7 +41,7 @@ class _MyDradwerState extends State<MyDradwer> {
             onPressed: () async {
               if(Platform.isAndroid) await GoogleSignIn().signOut();
               AppPreferences.clearCredentials();
-              await Download.clearDownloadTasks();
+              await MyDownloader.clearDownloadTasks();
               Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (context) => LoginPage(),), (route) => false);
             } ,
             //return true when click on "Yes"

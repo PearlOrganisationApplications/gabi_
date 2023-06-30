@@ -9,12 +9,11 @@ import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 
-class Download {
+class MyDownloader {
 
+  static late final ReceivePort port;
 
-
-
-  static Future<void> requestDownload(String _url, String _name) async {
+  static Future<void> requestDownload(String url, String name) async {
     if (await Permission.storage.status != PermissionStatus.granted) {
       var status = await Permission.storage.request();
       if (status == PermissionStatus.denied) {
@@ -30,66 +29,17 @@ class Download {
         });
       }
       else {
-        Directory? downloadsDirectory;
-        if (Platform.isAndroid) {
-          downloadsDirectory = await getDownloadsDirectory();
-        }else {
-          downloadsDirectory = await getApplicationDocumentsDirectory();
-        }
-
-        final savedDir = downloadsDirectory?.path;
-        if (savedDir != null) {
-          String? _taskid = await FlutterDownloader.enqueue(
-            url: _url,
-            fileName: _name,
-            savedDir: savedDir,
-            showNotification: true,
-            openFileFromNotification: true,
-          );
-          print('id0 ${_taskid}');
-          if (_taskid != null) {
-            FlutterDownloader.registerCallback(
-                downloadCallback); //output: /storage/emulated/0/Download
-          }
-        } else {
-          print("No download folder found.");
-        }
+        _startDownload(url: url, name: name);
       }
     }else {
-      Directory? downloadsDirectory;
-      if (Platform.isAndroid) {
-        downloadsDirectory = await getDownloadsDirectory();
-      }else {
-        downloadsDirectory = await getApplicationDocumentsDirectory();
-      }
-
-      final savedDir = downloadsDirectory?.path;
-      if (savedDir != null) {
-        String? _taskid = await FlutterDownloader.enqueue(
-          url: _url,
-          fileName: _name,
-          savedDir: savedDir,
-          showNotification: true,
-          openFileFromNotification: true,
-        );
-        print('id0 ${_taskid}');
-        if (_taskid != null) {
-          FlutterDownloader.registerCallback(
-              downloadCallback); //output: /storage/emulated/0/Download
-        }
-      } else {
-        print("No download folder found.");
-      }
+      _startDownload(url: url, name: name);
     }
   }
 
-  static void downloadCallback(String id, DownloadTaskStatus status, int progress) {
+  @pragma('vm:entry-point')
+  static void downloadCallback(String id, int status, int progress) {
     final SendPort send = IsolateNameServer.lookupPortByName('downloader_send_port')!;
     send.send([id, status, progress]);
-
-    if(progress <= 10){
-      EasyLoading.showSuccess('Hello');
-    }
   }
 
 
@@ -104,5 +54,36 @@ class Download {
     }
   }
 
+  static Future<void> _startDownload({required String url, required String name}) async {
+    Directory? downloadsDirectory;
+    if (Platform.isAndroid) {
+      downloadsDirectory = await getExternalStorageDirectory();
+    }else {
+      downloadsDirectory = await getApplicationDocumentsDirectory();
+    }
+
+    final savedDir = Platform.isAndroid?'${downloadsDirectory?.path}/Downloads':downloadsDirectory?.path;
+    if (savedDir != null) {
+      String? _taskid = await FlutterDownloader.enqueue(
+        url: url,
+        fileName: name,
+        savedDir: savedDir,
+        showNotification: true,
+        openFileFromNotification: true,
+      );
+      print('id0 ${_taskid}, $savedDir');
+      if (_taskid != null) {
+        //FlutterDownloader.registerCallback(downloadCallback);
+      }
+    } else {
+      print("No download folder found.");
+    }
+  }
+
+  static void init() {
+    port = ReceivePort();
+    IsolateNameServer.registerPortWithName(MyDownloader.port.sendPort, 'downloader_send_port');
+    FlutterDownloader.registerCallback(MyDownloader.downloadCallback);
+  }
 }
 

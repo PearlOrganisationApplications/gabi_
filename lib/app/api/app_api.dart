@@ -319,7 +319,6 @@ class API {
       return response;
     } on DioError catch (e) {
       print(e.response?.statusCode);
-
       print(e.toString());
       if (e.response?.statusCode == 404) {
         print(e.response?.statusCode);

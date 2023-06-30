@@ -213,7 +213,7 @@ class _ProfilePageState extends State<ProfilePage> {
       EasyLoading.showToast('Account Deleted Successfully!');
       await GoogleSignIn().signOut();
       AppPreferences.clearCredentials();
-      await Download.clearDownloadTasks();
+      await MyDownloader.clearDownloadTasks();
       Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (context) => LoginPage(),), (route) => false);
 
     }else if(response.data['status'] == 'false'){

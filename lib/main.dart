@@ -1,4 +1,7 @@
 
+import 'dart:isolate';
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_custom_dialog/flutter_custom_dialog.dart';
@@ -10,6 +13,7 @@ import 'package:gabi/presentation/screens/profilescreen/profile_page.dart';
 
 
 import 'package:gabi/presentation/screens/splashscreen/splashscreen.dart';
+import 'package:gabi/utils/downloader/downloader.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:just_audio_background/just_audio_background.dart';
 import 'app/constants/app_strings.dart';
@@ -74,11 +78,22 @@ void configLoading() {
 }
 
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
+  const MyApp({Key? key}) : super(key: key);
 
-  const MyApp({super.key});
+  @override
+  State<MyApp> createState() => _MyAppState();
+}
 
-  // This widget is the root of your application.
+class _MyAppState extends State<MyApp> {
+
+    final ReceivePort port = ReceivePort();
+
+  @override
+  void initState() {
+    MyDownloader.init();
+    super.initState();
+  }
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -93,4 +108,11 @@ class MyApp extends StatelessWidget {
       builder: EasyLoading.init(),
     );
   }
+
+  @override
+  void dispose() {
+    IsolateNameServer.removePortNameMapping('downloader_send_port');
+    super.dispose();
+  }
 }
+

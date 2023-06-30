@@ -7,6 +7,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_custom_dialog/flutter_custom_dialog.dart';
+import 'package:path/path.dart' as path;
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gabi/app/api/app_api.dart';
@@ -121,6 +122,19 @@ class _HomePageState extends State<HomePage> {
   }*/
 
   Future<void> init() async {
+    MyDownloader.port.listen((dynamic data) {
+      String id = data[0];
+      int status = data[1];
+      int progress = data[2];
+      //EasyLoading.showToast(status.toString(), dismissOnTap: true);
+      if(status == 3){
+        EasyLoading.showToast('Download completed', dismissOnTap: true, toastPosition: EasyLoadingToastPosition.top);
+      }else if(status == 0){
+        EasyLoading.showToast('Download failed', dismissOnTap: true, toastPosition: EasyLoadingToastPosition.top);
+      }else if(status == 1){
+        EasyLoading.showToast('Download started', dismissOnTap: true, toastPosition: EasyLoadingToastPosition.top);
+      }
+    });
     final session = await AudioSession.instance;
     await session.configure(const AudioSessionConfiguration.speech());
     // Listen to errors during playback.
@@ -874,8 +888,10 @@ class _HomePageState extends State<HomePage> {
                         ),
                         child: IconButton(
                           onPressed: () async {
+                            final String fileName = '${title.replaceAll(' ', '_')}${path.extension(songUrl)}';
+                            print(fileName);
                             EasyLoading.show(status: 'Preparing file to download');
-                            await Download.requestDownload(songUrl, '${title}.mp3');
+                            await MyDownloader.requestDownload(songUrl, fileName);
                             EasyLoading.dismiss();
                           },
                           icon: const Icon(
@@ -990,7 +1006,7 @@ class _HomePageState extends State<HomePage> {
                         child: IconButton(
                           onPressed: () async {
                             EasyLoading.show(status: 'Preparing file to download');
-                            await Download.requestDownload(songUrl, '${title}.mp3');
+                            await MyDownloader.requestDownload(songUrl, '${title}.mp3');
                             EasyLoading.dismiss();
                           },
                           icon: const Icon(
@@ -1108,7 +1124,7 @@ class _HomePageState extends State<HomePage> {
                             child: IconButton(
                               onPressed: () async {
                                 EasyLoading.show(status: 'Preparing file to download');
-                                await Download.requestDownload(songUrl, '${title}.mp3');
+                                await MyDownloader.requestDownload(songUrl, '${title}.mp3');
                                 EasyLoading.dismiss();
                               },
                               icon: const Icon(
