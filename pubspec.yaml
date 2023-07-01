@@ -80,6 +80,7 @@ dependencies:
   #sound_analysis: ^0.0.3
   sign_in_with_apple: ^4.3.0
   just_audio_background: ^0.0.1-beta.10
+  open_file: ^3.3.2
   #the_apple_sign_in: ^1.1.1
 
 

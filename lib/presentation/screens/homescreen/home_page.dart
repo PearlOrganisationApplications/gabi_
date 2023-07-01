@@ -128,11 +128,11 @@ class _HomePageState extends State<HomePage> {
       int progress = data[2];
       //EasyLoading.showToast(status.toString(), dismissOnTap: true);
       if(status == 3){
-        EasyLoading.showToast('Download completed', dismissOnTap: true, toastPosition: EasyLoadingToastPosition.top);
+        EasyLoading.showToast('Download completed', dismissOnTap: true, toastPosition: EasyLoadingToastPosition.bottom);
       }else if(status == 0){
-        EasyLoading.showToast('Download failed', dismissOnTap: true, toastPosition: EasyLoadingToastPosition.top);
+        EasyLoading.showToast('Download failed', dismissOnTap: true, toastPosition: EasyLoadingToastPosition.bottom);
       }else if(status == 1){
-        EasyLoading.showToast('Download started', dismissOnTap: true, toastPosition: EasyLoadingToastPosition.top);
+        EasyLoading.showToast('Download started', dismissOnTap: true, toastPosition: EasyLoadingToastPosition.bottom);
       }
     });
     final session = await AudioSession.instance;

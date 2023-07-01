@@ -1,8 +1,10 @@
+import 'dart:io';
 import 'dart:ui';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_downloader/flutter_downloader.dart';
+import 'package:open_file/open_file.dart';
 
 import '../../../utils/systemuioverlay/full_screen.dart';
 
@@ -251,17 +253,18 @@ class _DownloadPageState extends State<DownloadScreen> {
         )
       ],
     )
-        /*: _status == DownloadTaskStatus.complete
+        : _status == DownloadTaskStatus.complete
         ? GestureDetector(
       child:
-      Icon(Icons.delete, size: 20, color: Colors.red),
+      Icon(Icons.play_arrow_rounded, size: 20, color: Colors.green),
       onTap: () {
-        downloadsListMaps.removeAt(index);
+        /*downloadsListMaps.removeAt(index);
         FlutterDownloader.remove(
             taskId: taskid, shouldDeleteContent: true);
-        setState(() {});
+        setState(() {});*/
+        OpenFile.open('${downloadsListMaps[index]['savedDirectory']}${Platform.pathSeparator}${downloadsListMaps[index]['filename']}');
       },
-    )*/
+    )
         : Container();
   }
 
@@ -283,33 +286,4 @@ class _DownloadPageState extends State<DownloadScreen> {
     }
   }
 
-  /*ReceivePort _port = ReceivePort();
-  void _bindBackgroundIsolate() {
-    bool isSuccess = IsolateNameServer.registerPortWithName(
-        _port.sendPort, 'downloader_send_port');
-    if (!isSuccess) {
-      _unbindBackgroundIsolate();
-      _bindBackgroundIsolate();
-      return;
-    }
-    _port.listen((dynamic data) {
-      String id = data[0];
-      DownloadTaskStatus status = data[1];
-      int progress = data[2];
-      var task = downloadsListMaps?.where((element) => element['id'] == id);
-      task?.forEach((element) {
-        element['progress'] = progress;
-        element['status'] = status;
-        setState(() {});
-      });
-    });
-  }
-  static void downloadCallback(
-      String id, DownloadTaskStatus status, int progress) {
-    final SendPort? send = IsolateNameServer.lookupPortByName('downloader_send_port');
-    send?.send([id, status, progress]);
-  }
-  void _unbindBackgroundIsolate() {
-    IsolateNameServer.removePortNameMapping('downloader_send_port');
-  }*/
 }

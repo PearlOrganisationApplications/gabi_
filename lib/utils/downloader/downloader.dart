@@ -57,13 +57,18 @@ class MyDownloader {
   static Future<void> _startDownload({required String url, required String name}) async {
     Directory? downloadsDirectory;
     if (Platform.isAndroid) {
-      downloadsDirectory = await getExternalStorageDirectory();
+
+      final downloads = Directory('/storage/emulated/0/Download');
+      downloadsDirectory = await Directory(downloads.path).create(recursive: true);
     }else {
-      downloadsDirectory = await getApplicationDocumentsDirectory();
+      final directory = await getApplicationDocumentsDirectory();
+      final downloads = Directory('${directory.path}${Platform.pathSeparator}Downloads');
+      downloadsDirectory = await Directory(downloads.path).create(recursive: true);
     }
 
-    final savedDir = Platform.isAndroid?'${downloadsDirectory?.path}/Downloads':downloadsDirectory?.path;
-    if (savedDir != null) {
+    //Platform.isAndroid?'${downloadsDirectory?.path}/Downloads':
+    final savedDir = downloadsDirectory.path;
+    try{
       String? _taskid = await FlutterDownloader.enqueue(
         url: url,
         fileName: name,
@@ -75,8 +80,8 @@ class MyDownloader {
       if (_taskid != null) {
         //FlutterDownloader.registerCallback(downloadCallback);
       }
-    } else {
-      print("No download folder found.");
+    }catch (e){
+      EasyLoading.showToast('Downloads Directory Error: $e');
     }
   }
 
